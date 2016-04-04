@@ -28,8 +28,8 @@ pub fn breadth_first_search<F>(graph: Graph, root: &String, f: &mut F)
     let mut queue: VecDeque<&String> = VecDeque::new();
     let mut marked = HashSet::new();
     queue.push_back(root);
+    marked.insert(root);
     while let Some(current_node) = queue.pop_front() {
-        marked.insert(current_node);
         f(current_node);
 
         let adjacent_nodes = graph.adjacent_nodes(current_node);
@@ -47,10 +47,34 @@ pub fn breadth_first_search<F>(graph: Graph, root: &String, f: &mut F)
     }
 }
 
+pub fn depth_first_search<F>(graph: Graph, root: &String, f: &mut F)
+        where F: for<'a> FnMut(&String) {
+    let mut stack: VecDeque<&String> = VecDeque::new();
+    let mut marked = HashSet::new();
+    stack.push_front(root);
+    marked.insert(root);
+    while let Some(current_node) = stack.pop_front() {
+        f(current_node);
+
+        let adjacent_nodes = graph.adjacent_nodes(current_node);
+        adjacent_nodes.map(|nodes|
+            stack = nodes.iter().fold(stack.clone(), |mut acc, adj|
+                if !marked.contains(adj) {
+                    acc.push_front(adj);
+                    marked.insert(adj);
+                    acc
+                } else {
+                    acc
+                }
+            )
+        );
+    }
+}
+
 #[cfg(test)]
 mod test {
-    use std::collections::{ HashMap, HashSet, VecDeque };
-    use super::{ Graph, breadth_first_search };
+    use std::collections::{ HashSet, VecDeque };
+    use super::{ Graph, breadth_first_search, depth_first_search };
 
     #[test]
     fn build_graph() {
@@ -116,6 +140,38 @@ mod test {
         assert_eq!(visited.pop_back(), Some("D".to_string()));
         assert_eq!(visited.len(), 2);
         assert!(inner_node(visited.pop_front()));
+        assert!(inner_node(visited.pop_front()));
+    }
+
+    #[test]
+    fn dfs() {
+        let mut graph = Graph::new();
+
+        // A -- B
+        // |    |
+        // C -- D
+
+        graph.add_edge("A".to_string(), "B".to_string());
+        graph.add_edge("A".to_string(), "C".to_string());
+        graph.add_edge("B".to_string(), "D".to_string());
+        graph.add_edge("C".to_string(), "D".to_string());
+
+        let mut visited = VecDeque::new();
+
+        {
+            depth_first_search(
+                graph,
+                &"A".to_string(),
+                &mut (|node: &String| visited.push_back(node.clone()))
+            );
+        }
+
+        let inner_node = |node|
+            node == Some("B".to_string()) || node == Some("C".to_string());
+
+        assert_eq!(visited.pop_front(), Some("A".to_string()));
+        assert!(inner_node(visited.pop_front()));
+        assert_eq!(visited.pop_front(), Some("D".to_string()));
         assert!(inner_node(visited.pop_front()));
     }
 }
