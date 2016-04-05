@@ -23,58 +23,123 @@ impl<'a> Graph {
     }
 }
 
-pub fn breadth_first_search<F>(graph: Graph, root: &String, f: &mut F)
-        where F: for<'a> FnMut(&String) {
-    let mut queue: VecDeque<&String> = VecDeque::new();
-    let mut marked = HashSet::new();
-    queue.push_back(root);
-    marked.insert(root);
-    while let Some(current_node) = queue.pop_front() {
-        f(current_node);
+struct Queue<T>(VecDeque<T>);
+struct Stack<T>(VecDeque<T>);
 
-        let adjacent_nodes = graph.adjacent_nodes(current_node);
-        adjacent_nodes.map(|nodes|
-            queue = nodes.iter().fold(queue.clone(), |mut acc, adj|
-                if !marked.contains(adj) {
-                    acc.push_back(adj);
-                    marked.insert(adj);
-                    acc
-                } else {
-                    acc
-                }
-            )
-        );
+pub trait Seq<T> {
+    fn push(&mut self, val: T);
+    fn pop(&mut self) -> Option<T>;
+    fn new() -> Self;
+}
+
+impl<T> Seq<T> for  Stack<T> {
+    fn new() -> Self {
+        Stack(VecDeque::new())
+    }
+
+    fn push(&mut self, val: T) {
+        self.0.push_back(val)
+    }
+
+    fn pop(&mut self) -> Option<T> {
+        self.0.pop_back()
     }
 }
 
-pub fn depth_first_search<F>(graph: Graph, root: &String, f: &mut F)
-        where F: for<'a> FnMut(&String) {
-    let mut stack: VecDeque<&String> = VecDeque::new();
+impl<T> Seq<T> for Queue<T> {
+    fn new() -> Self {
+        Queue(VecDeque::new())
+    }
+
+    fn push(&mut self, val: T) {
+        self.0.push_back(val)
+    }
+
+    fn pop(&mut self) -> Option<T> {
+        self.0.pop_front()
+    }
+}
+
+fn search<'a, F, S: Seq<&'a str>>(graph: &'a Graph, root: &'a str, f: &mut F, seq: S)
+    where F: FnMut(&str) {
+
+    let root_ref = &root.to_string();
+    let mut seen = seq;
     let mut marked = HashSet::new();
-    stack.push_front(root);
-    marked.insert(root);
-    while let Some(current_node) = stack.pop_front() {
+    seen.push(root);
+    marked.insert(root_ref);
+    while let Some(current_node) = seen.pop() {
         f(current_node);
 
-        let adjacent_nodes = graph.adjacent_nodes(current_node);
-        adjacent_nodes.map(|nodes|
-            stack = nodes.iter().fold(stack.clone(), |mut acc, adj|
-                if !marked.contains(adj) {
-                    acc.push_front(adj);
-                    marked.insert(adj);
-                    acc
-                } else {
-                    acc
+        match graph.adjacent_nodes(&current_node.to_string()) {
+            Some(adjacent_nodes) => {
+                let mut iter = adjacent_nodes.iter();
+                while let Some(node) = iter.next() {
+                    if !marked.contains(&node) {
+                        marked.insert(node);
+                        seen.push(node);
+                    }
                 }
-            )
-        );
+            }
+            None => {}
+        }
     }
+}
+
+pub fn breadth_first_search<F>(graph: &Graph, root: &str, f: &mut F)
+        where F: FnMut(&str) {
+            search(graph, root, f, <Queue<&str> as Seq<&str>>::new());
+}
+
+pub fn depth_first_search<F>(graph: &Graph, root: &str, f: &mut F)
+        where F: FnMut(&str) {
+            search(graph, root, f, <Stack<&str> as Seq<&str>>::new());
 }
 
 #[cfg(test)]
 mod test {
     use std::collections::{ HashSet, VecDeque };
-    use super::{ Graph, breadth_first_search, depth_first_search };
+    use super::{ Graph,
+                 breadth_first_search,
+                 depth_first_search,
+                 Stack,
+                 Queue,
+                 Seq
+               };
+
+    #[test]
+    fn stack() {
+        let a = "A".to_string();
+        let b = "B".to_string();
+        let c = "C".to_string();
+
+        let mut stack = Stack::new();
+        stack.push(&a);
+        stack.push(&b);
+        stack.push(&c);
+
+        assert_eq!(stack.pop(), Some(&c));
+        assert_eq!(stack.pop(), Some(&b));
+        assert_eq!(stack.pop(), Some(&a));
+        assert_eq!(stack.pop(), None);
+    }
+
+    #[test]
+    fn queue() {
+        let a = "A".to_string();
+        let b = "B".to_string();
+        let c = "C".to_string();
+
+        let mut queue = Queue::new();
+        queue.push(&a);
+        queue.push(&b);
+        queue.push(&c);
+
+        assert_eq!(queue.pop(), Some(&a));
+        assert_eq!(queue.pop(), Some(&b));
+        assert_eq!(queue.pop(), Some(&c));
+        assert_eq!(queue.pop(), None);
+    }
 
     #[test]
     fn build_graph() {
@@ -122,14 +187,15 @@ mod test {
         graph.add_edge("A".to_string(), "C".to_string());
         graph.add_edge("B".to_string(), "D".to_string());
         graph.add_edge("C".to_string(), "D".to_string());
+        let root = "A";
 
         let mut visited = VecDeque::new();
 
         {
             breadth_first_search(
-                graph,
-                &"A".to_string(),
-                &mut (|node: &String| visited.push_back(node.clone()))
+                &graph,
+                &root,
+                &mut (|node: &str| visited.push_back(node.to_string()))
             );
         }
 
@@ -141,6 +207,11 @@ mod test {
         assert_eq!(visited.len(), 2);
         assert!(inner_node(visited.pop_front()));
         assert!(inner_node(visited.pop_front()));
+
+        let mut a_adj = HashSet::new();
+        a_adj.insert("B".to_string());
+        a_adj.insert("C".to_string());
+        assert_eq!(graph.adjacent_nodes(&"A".to_string()), Some(&a_adj));
     }
 
     #[test]
@@ -160,9 +231,9 @@ mod test {
 
         {
             depth_first_search(
-                graph,
+                &graph,
                 &"A".to_string(),
-                &mut (|node: &String| visited.push_back(node.clone()))
+                &mut (|node: &str| visited.push_back(node.to_string()))
             );
         }
 
@@ -173,5 +244,10 @@ mod test {
         assert!(inner_node(visited.pop_front()));
         assert_eq!(visited.pop_front(), Some("D".to_string()));
         assert!(inner_node(visited.pop_front()));
+
+        let mut a_adj = HashSet::new();
+        a_adj.insert("B".to_string());
+        a_adj.insert("C".to_string());
+        assert_eq!(graph.adjacent_nodes(&"A".to_string()), Some(&a_adj));
     }
 }
