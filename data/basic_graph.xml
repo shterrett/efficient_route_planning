@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<easymap version="1">
+  <point x="2" y="3" id="0" />
+  <point x="3" y="1" id="1" />
+  <point x="3" y="-1" id="2" />
+  <point x="1" y="-3" id="3" />
+  <point x="-2" y="-2" id="4" />
+  <point x="-4" y="-3" id="5" />
+  <point x="-2" y="1" id="6" />
+  <edge id="0">
+    <p ref="0" />
+    <p ref="6" />
+    <p ref="5" />
+  </edge>
+  <edge id="1">
+    <p ref="6" />
+    <p ref="4" />
+  </edge>
+  <edge id="2">
+    <p ref="4" />
+    <p ref="2" />
+  </edge>
+  <edge id="3">
+    <p ref="4" />
+    <p ref="1" />
+  </edge>
+  <edge id="4">
+    <p ref="3" />
+    <p ref="1" />
+  </edge>
+  <edge id="5">
+    <p ref="0" />
+    <p ref="2" />
+    <p ref="1" />
+  </edge>
+  <edge id="6">
+    <p ref="0" />
+    <p ref="1" />
+  </edge>
+  <edge id="7">
+    <p ref="1" />
+    <p ref="5" />
+  </edge>
+  <edge id="8">
+    <p ref="5" />
+    <p ref="1" />
+  </edge>
+</easymap>
