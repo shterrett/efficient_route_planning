@@ -42,8 +42,4 @@
     <p ref="1" />
     <p ref="5" />
   </edge>
-  <edge id="8">
-    <p ref="5" />
-    <p ref="1" />
-  </edge>
 </easymap>
