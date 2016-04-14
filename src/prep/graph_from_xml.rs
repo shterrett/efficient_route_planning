@@ -14,6 +14,8 @@ pub fn build_graph_from_xml(path: &str) -> Graph {
 
     let mut parser = EventReader::new(reader);
     let mut graph = Graph::new();
+    let mut current_edge_id = "".to_string();
+    let mut edge_nodes = vec![];
     let mut eof = false;
 
     while !eof {
@@ -25,7 +27,20 @@ pub fn build_graph_from_xml(path: &str) -> Graph {
                             add_node(&mut graph, &attributes);
                         }
                         "edge" => {
-                            add_edge(&mut graph, &mut parser, &attributes);
+                            current_edge_id = get_attribute(&attributes, "id").unwrap_or("".to_string());
+                        }
+                        "p" => {
+                            edge_nodes.push(get_attribute(&attributes, "ref").unwrap_or("".to_string()));
+                        }
+                        _ => {}
+                    }
+                }
+                XmlEvent::EndElement { ref name, .. } => {
+                    match name.local_name.as_str() {
+                        "edge" => {
+                            add_edge(&mut graph, &current_edge_id, &edge_nodes);
+                            current_edge_id = "".to_string();
+                            edge_nodes.clear();
                         }
                         _ => {}
                     }
@@ -56,38 +71,15 @@ fn add_node(graph: &mut Graph, attributes: &Vec<OwnedAttribute>) {
     )
 }
 
-fn add_edge(graph: &mut Graph, parser: &mut EventReader<BufReader<File>>, edge_attributes: &Vec<OwnedAttribute>) {
-    let mut in_edge = true;
-    let current_edge_id = get_attribute(edge_attributes, "id").unwrap_or("".to_string());
-    let mut previous_node_id = "".to_string();
-    while in_edge {
-        match parser.next() {
-            Ok(e) => {
-                match e {
-                    XmlEvent::StartElement { ref name, ref attributes, .. } => {
-                        if previous_node_id == "" {
-                            previous_node_id = get_attribute(attributes, "ref").unwrap_or("".to_string());
-                        } else {
-                            let current_node_id = get_attribute(attributes, "ref").unwrap_or("".to_string());
-                            graph.add_edge(current_edge_id.clone(),
-                                           previous_node_id.clone(),
-                                           current_node_id.clone());
-                            graph.add_edge(current_edge_id.clone(),
-                                           current_node_id.clone(),
-                                           previous_node_id.clone());
-                            previous_node_id = current_node_id;
-                        };
-                    }
-                    XmlEvent::EndElement { ref name } => {
-                        if name.local_name == "edge" {
-                            in_edge = false;
-                        }
-                    }
-                    _ => {}
-                }
-            }
-            Err(e) => println!("Error parsing XML document: {}", e)
-        }
+fn add_edge(graph: &mut Graph, edge_id: &String, nodes: &Vec<String>) {
+    let mut pairs = nodes.windows(2);
+    while let Some(pair) = pairs.next() {
+        graph.add_edge(edge_id.clone(),
+                       pair[0].clone(),
+                       pair[1].clone());
+        graph.add_edge(edge_id.clone(),
+                       pair[1].clone(),
+                       pair[0].clone());
     }
 }
 
