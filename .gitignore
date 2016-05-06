@@ -1,3 +1,4 @@
 target
 Cargo.lock
-data/*.osm
+data/baden-wuerttemberg.osm
+data/saarland.osm
