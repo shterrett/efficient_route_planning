@@ -118,7 +118,6 @@ mod test {
     use super::{ build_graph_from_xml };
     use weighted_graph:: { Graph, Node };
     use road_weights::road_weight;
-    use test_helpers::floats_nearly_eq;
 
     fn has_node_ids(graph: &Graph) -> bool {
         vec!["292403538", "298884289", "261728686", "298884272"].iter().all(|id|

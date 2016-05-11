@@ -12,9 +12,7 @@ pub type NodeId = String;
 pub struct Node {
     pub id: NodeId,
     pub x: f64,
-    pub y: f64,
-    pub cost: i64,
-    pub predecessor: NodeId
+    pub y: f64
 }
 
 #[derive(PartialEq, Debug)]
@@ -40,22 +38,6 @@ impl Graph {
 
     pub fn get_node(&self, id: &str) -> Option<&Node> {
         self.nodes.get(id)
-    }
-
-    pub fn set_cost(&mut self, id: &str, cost: i64) {
-        self.nodes.get_mut(id).map(|node| node.cost = cost);
-    }
-
-    pub fn set_predecessor(&mut self, id: &str, predecessor: NodeId) {
-        self.nodes.get_mut(id).map(|node| node.predecessor = predecessor);
-    }
-
-    pub fn reset(&mut self) {
-        let mut iter = self.nodes.iter_mut();
-        while let Some((_, node)) = iter.next() {
-            node.predecessor = "".to_string();
-            node.cost = 0;
-        }
     }
 
     pub fn add_edge(&mut self, id: String, from_id: NodeId, to_id: NodeId, weight: i64) {
@@ -158,30 +140,5 @@ mod test {
                                                to_id: "n2".to_string(),
                                                weight: 5
                                              }]));
-    }
-
-    #[test]
-    fn setting_and_resetting_cost_and_predecessor() {
-        let mut graph = Graph::new();
-        graph.add_node("1".to_string(), 1.0, 1.0);
-        graph.add_node("2".to_string(), 3.0, 5.0);
-
-        graph.set_cost(&"1", 10);
-        graph.set_predecessor(&"1", "2".to_string());
-
-        graph.set_cost(&"2", 10);
-        graph.set_predecessor(&"2", "1".to_string());
-
-        assert_eq!(graph.get_node(&"1".to_string()).unwrap().cost, 10);
-        assert_eq!(graph.get_node(&"1".to_string()).unwrap().predecessor, "2".to_string());
-        assert_eq!(graph.get_node(&"2".to_string()).unwrap().cost, 10);
-        assert_eq!(graph.get_node(&"2".to_string()).unwrap().predecessor, "1".to_string());
-
-        graph.reset();
-
-        assert_eq!(graph.get_node(&"1".to_string()).unwrap().cost, 0);
-        assert_eq!(graph.get_node(&"1".to_string()).unwrap().predecessor, "".to_string());
-        assert_eq!(graph.get_node(&"2".to_string()).unwrap().cost, 0);
-        assert_eq!(graph.get_node(&"2".to_string()).unwrap().predecessor, "".to_string());
     }
 }
