@@ -157,20 +157,18 @@ mod test {
                 edges.iter().any(|edge|
                     edge.from_id == "298884289" &&
                     edge.to_id == "292403538" &&
-                    floats_nearly_eq(
-                        edge.weight,
-                        road_weight(graph.get_node("298884289").unwrap(),
-                                    graph.get_node("292403538").unwrap(),
-                                    "unclassified").unwrap())
+                        (edge.weight ==
+                            road_weight(graph.get_node("298884289").unwrap(),
+                                        graph.get_node("292403538").unwrap(),
+                                        "unclassified").unwrap())
                 ) &&
                 edges.iter().any(|edge|
                     edge.from_id == "298884289" &&
                     edge.to_id == "261728686" &&
-                    floats_nearly_eq(
-                        edge.weight,
-                        road_weight(graph.get_node("298884289").unwrap(),
-                                    graph.get_node("261728686").unwrap(),
-                                    "unclassified").unwrap())
+                        (edge.weight ==
+                            road_weight(graph.get_node("298884289").unwrap(),
+                                        graph.get_node("261728686").unwrap(),
+                                        "unclassified").unwrap())
                 )
             }
             None => false

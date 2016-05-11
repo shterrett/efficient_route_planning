@@ -13,7 +13,7 @@ pub struct Node {
     pub id: NodeId,
     pub x: f64,
     pub y: f64,
-    pub cost: f64,
+    pub cost: i64,
     pub predecessor: NodeId
 }
 
@@ -22,7 +22,7 @@ pub struct Edge {
     pub id: String,
     pub from_id: NodeId,
     pub to_id: NodeId,
-    pub weight: f64
+    pub weight: i64
 }
 
 impl Graph {
@@ -42,7 +42,7 @@ impl Graph {
         self.nodes.get(id)
     }
 
-    pub fn set_cost(&mut self, id: &str, cost: f64) {
+    pub fn set_cost(&mut self, id: &str, cost: i64) {
         self.nodes.get_mut(id).map(|node| node.cost = cost);
     }
 
@@ -54,11 +54,11 @@ impl Graph {
         let mut iter = self.nodes.iter_mut();
         while let Some((_, node)) = iter.next() {
             node.predecessor = "".to_string();
-            node.cost = 0.0;
+            node.cost = 0;
         }
     }
 
-    pub fn add_edge(&mut self, id: String, from_id: NodeId, to_id: NodeId, weight: f64) {
+    pub fn add_edge(&mut self, id: String, from_id: NodeId, to_id: NodeId, weight: i64) {
         let edge = self.build_edge(&id, &from_id, &to_id, weight);
         match edge {
             Some(e) => {
@@ -69,7 +69,7 @@ impl Graph {
         }
     }
 
-    fn build_edge(&self, id: &str, from_id: &NodeId, to_id: &NodeId, weight: f64) -> Option<Edge> {
+    fn build_edge(&self, id: &str, from_id: &NodeId, to_id: &NodeId, weight: i64) -> Option<Edge> {
         let from = self.get_node(&from_id);
         let to = self.get_node(&to_id);
             if from.is_some() && to.is_some() {
@@ -134,9 +134,9 @@ mod test {
         graph.add_node("n2".to_string(), 5.0, 0.0);
         graph.add_node("n3".to_string(), 2.0, 4.0);
 
-        graph.add_edge("e1".to_string(), "n2".to_string(), "n1".to_string(), 13.0);
-        graph.add_edge("e2".to_string(), "n3".to_string(), "n2".to_string(), 5.0);
-        graph.add_edge("e3".to_string(), "n2".to_string(), "n3".to_string(), 5.0);
+        graph.add_edge("e1".to_string(), "n2".to_string(), "n1".to_string(), 13);
+        graph.add_edge("e2".to_string(), "n3".to_string(), "n2".to_string(), 5);
+        graph.add_edge("e3".to_string(), "n2".to_string(), "n3".to_string(), 5);
 
         let edges_n1 = graph.get_edges("n1");
         let edges_n2 = graph.get_edges("n2");
@@ -146,17 +146,17 @@ mod test {
         assert_eq!(edges_n2, Some(&vec![Edge { id: "e1".to_string(),
                                                from_id: "n2".to_string(),
                                                to_id: "n1".to_string(),
-                                               weight: 13.0
+                                               weight: 13
                                              },
                                         Edge { id: "e3".to_string(),
                                                from_id: "n2".to_string(),
                                                to_id: "n3".to_string(),
-                                               weight: 5.0
+                                               weight: 5
                                              }]));
         assert_eq!(edges_n3, Some(&vec![Edge { id: "e2".to_string(),
                                                from_id: "n3".to_string(),
                                                to_id: "n2".to_string(),
-                                               weight: 5.0
+                                               weight: 5
                                              }]));
     }
 
@@ -166,22 +166,22 @@ mod test {
         graph.add_node("1".to_string(), 1.0, 1.0);
         graph.add_node("2".to_string(), 3.0, 5.0);
 
-        graph.set_cost(&"1", 10.0);
+        graph.set_cost(&"1", 10);
         graph.set_predecessor(&"1", "2".to_string());
 
-        graph.set_cost(&"2", 10.0);
+        graph.set_cost(&"2", 10);
         graph.set_predecessor(&"2", "1".to_string());
 
-        assert_eq!(graph.get_node(&"1".to_string()).unwrap().cost, 10.0);
+        assert_eq!(graph.get_node(&"1".to_string()).unwrap().cost, 10);
         assert_eq!(graph.get_node(&"1".to_string()).unwrap().predecessor, "2".to_string());
-        assert_eq!(graph.get_node(&"2".to_string()).unwrap().cost, 10.0);
+        assert_eq!(graph.get_node(&"2".to_string()).unwrap().cost, 10);
         assert_eq!(graph.get_node(&"2".to_string()).unwrap().predecessor, "1".to_string());
 
         graph.reset();
 
-        assert_eq!(graph.get_node(&"1".to_string()).unwrap().cost, 0.0);
+        assert_eq!(graph.get_node(&"1".to_string()).unwrap().cost, 0);
         assert_eq!(graph.get_node(&"1".to_string()).unwrap().predecessor, "".to_string());
-        assert_eq!(graph.get_node(&"2".to_string()).unwrap().cost, 0.0);
+        assert_eq!(graph.get_node(&"2".to_string()).unwrap().cost, 0);
         assert_eq!(graph.get_node(&"2".to_string()).unwrap().predecessor, "".to_string());
     }
 }
