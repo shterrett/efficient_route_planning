@@ -48,9 +48,9 @@ pub fn shortest_path(graph: &Graph,
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct Result {
-    cost: i64,
-    id: NodeId,
-    predecessor: NodeId
+    pub cost: i64,
+    pub id: NodeId,
+    pub predecessor: NodeId
 }
 
 impl Ord for Result {

@@ -40,6 +40,10 @@ impl Graph {
         self.nodes.get(id)
     }
 
+    pub fn all_nodes(&self) -> Vec<&Node> {
+        self.nodes.values().collect()
+    }
+
     pub fn add_edge(&mut self, id: String, from_id: NodeId, to_id: NodeId, weight: i64) {
         let edge = self.build_edge(&id, &from_id, &to_id, weight);
         match edge {
@@ -72,6 +76,7 @@ impl Graph {
 
 #[cfg(test)]
 mod test {
+    use std::collections::HashSet;
     use super::{ Graph, Edge };
     use test_helpers::floats_nearly_eq;
 
@@ -140,5 +145,30 @@ mod test {
                                                to_id: "n2".to_string(),
                                                weight: 5
                                              }]));
+    }
+
+    #[test]
+    fn returns_all_nodes() {
+        let mut graph = Graph::new();
+
+        graph.add_node("n1".to_string(), 0.0, 12.0);
+        graph.add_node("n2".to_string(), 5.0, 0.0);
+        graph.add_node("n3".to_string(), 2.0, 4.0);
+
+        let n1 = "n1".to_string();
+        let n2 = "n2".to_string();
+        let n3 = "n3".to_string();
+
+        let mut expected_node_ids = HashSet::new();
+        expected_node_ids.insert(&n1);
+        expected_node_ids.insert(&n2);
+        expected_node_ids.insert(&n3);
+
+        let nodes = graph.all_nodes()
+                         .iter()
+                         .map(|n| &n.id)
+                         .collect::<HashSet<&String>>();
+
+        assert_eq!(nodes, expected_node_ids);
     }
 }
