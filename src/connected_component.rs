@@ -8,16 +8,21 @@ pub fn reduce_to_largest_connected_component(graph: Graph) -> Graph {
 }
 
 fn reducer(graph: Graph, untested_nodes: HashSet<NodeId>, mut results: Vec<HashSet<NodeId>>) -> Graph {
-    if untested_nodes.is_empty() {
-        collapsed_graph(&graph, &results)
-    } else {
-        let root = untested_nodes.iter().next().unwrap();
-        let connected_nodes = explore_from(&root, &graph);
-        results.push(connected_nodes);
-        reducer(graph,
-                untested_nodes.difference(results.last().unwrap()).cloned().collect(),
-                results
-                )
+    match untested_nodes.iter().next() {
+        None => {
+            collapsed_graph(&graph, &results)
+        }
+        Some(root) => {
+            let connected_nodes = explore_from(&root, &graph);
+            let difference = untested_nodes.difference(&connected_nodes)
+                                           .cloned()
+                                           .collect();
+            results.push(connected_nodes);
+            reducer(graph,
+                    difference,
+                    results
+                    )
+        }
     }
 }
 
@@ -42,13 +47,10 @@ fn collapsed_graph(graph: &Graph, results: &Vec<HashSet<NodeId>>) -> Graph {
 }
 
 fn add_node(old_graph: &Graph, mut new_graph: &mut Graph, id: &NodeId) {
-    match old_graph.get_node(id) {
-        Some(node) => {
-            new_graph.add_node(id.clone(),
-                            node.x,
-                            node.y);
-        }
-        None => {}
+    if let Some(node) = old_graph.get_node(id) {
+        new_graph.add_node(id.clone(),
+                        node.x,
+                        node.y);
     }
 }
 
