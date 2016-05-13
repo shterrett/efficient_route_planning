@@ -11,7 +11,7 @@ fn reducer(graph: Graph, untested_nodes: HashSet<NodeId>, mut results: Vec<HashS
     if untested_nodes.is_empty() {
         collapsed_graph(&graph, &results)
     } else {
-        let root = untested_nodes.iter().nth(0).unwrap();
+        let root = untested_nodes.iter().next().unwrap();
         let connected_nodes = explore_from(&root, &graph);
         results.push(connected_nodes);
         reducer(graph,
@@ -25,21 +25,18 @@ fn explore_from(root: &NodeId, graph: &Graph) -> HashSet<NodeId> {
     let (_, results) = shortest_path(graph, root, None);
     results.values()
            .map(|result| result.id.clone())
-           .collect::<HashSet<NodeId>>()
+           .collect()
 }
 
 fn collapsed_graph(graph: &Graph, results: &Vec<HashSet<NodeId>>) -> Graph {
     let mut new_graph = Graph::new();
-    match results.iter().max_by_key(|nodes| nodes.len()) {
-        Some(nodes) => {
-            for node_id in nodes {
-                add_node(graph, &mut new_graph, &node_id);
-            }
-            for node_id in nodes {
-                add_edges(graph, &mut new_graph, &node_id);
-            }
+    if let Some(nodes) = results.iter().max_by_key(|results| results.len()) {
+        for node_id in nodes {
+            add_node(graph, &mut new_graph, &node_id);
         }
-        None => {}
+        for node_id in nodes {
+            add_edges(graph, &mut new_graph, &node_id);
+        }
     }
     new_graph
 }
@@ -56,16 +53,13 @@ fn add_node(old_graph: &Graph, mut new_graph: &mut Graph, id: &NodeId) {
 }
 
 fn add_edges(old_graph: &Graph, mut new_graph: &mut Graph, id: &NodeId) {
-    match old_graph.get_edges(id) {
-        Some(edges) => {
-            for edge in edges {
-                new_graph.add_edge(edge.id.clone(),
-                                   id.clone(),
-                                   edge.to_id.clone(),
-                                   edge.weight);
-            }
+    if let Some(edges) = old_graph.get_edges(id) {
+        for edge in edges {
+            new_graph.add_edge(edge.id.clone(),
+                                id.clone(),
+                                edge.to_id.clone(),
+                                edge.weight);
         }
-        None => {}
     }
 }
 

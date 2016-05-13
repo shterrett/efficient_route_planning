@@ -23,22 +23,18 @@ pub fn shortest_path(graph: &Graph,
         }
 
         if let Some(edges) = graph.get_edges(&current.id) {
-            let mut iter = edges.iter();
-            while let Some(edge) = iter.next() {
-                match graph.get_node(&edge.to_id) {
-                    Some(node) => {
-                        let node_cost = results.get(&node.id)
-                                               .map_or(i64::max_value(), |node| node.cost);
-                        if current.cost + edge.weight < node_cost {
-                            let hnode = Result { id: node.id.clone(),
-                                                cost: current.cost + edge.weight,
-                                                predecessor: current.id.clone()
-                                              };
-                            min_heap.push(hnode.clone());
-                            results.insert(node.id.clone(), hnode.clone());
-                        }
+            for edge in edges.iter() {
+                if let Some(node) = graph.get_node(&edge.to_id) {
+                    let node_cost = results.get(&node.id)
+                                            .map_or(i64::max_value(), |node| node.cost);
+                    if current.cost + edge.weight < node_cost {
+                        let hnode = Result { id: node.id.clone(),
+                                            cost: current.cost + edge.weight,
+                                            predecessor: current.id.clone()
+                                            };
+                        min_heap.push(hnode.clone());
+                        results.insert(node.id.clone(), hnode.clone());
                     }
-                    None => {}
                 }
             }
         }
