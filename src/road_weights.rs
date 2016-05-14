@@ -25,9 +25,9 @@ lazy_static! {
     static ref RADIUS_EARTH_METERS: f64 = 6371000.0;
 }
 
-pub fn road_weight(from: &Node, to: &Node, road_type: &str) -> Option<f64> {
+pub fn road_weight(from: &Node, to: &Node, road_type: &str) -> Option<i64> {
     ROAD_TYPE_SPEED.get(road_type).map(|speed|
-       haversine(from.x, from.y, to.x, to.y) / *speed as f64
+       ((haversine(from.x, from.y, to.x, to.y) / *speed as f64) * 3600.0) as i64
     )
 }
 
@@ -70,17 +70,17 @@ mod test {
 
     #[test]
     fn test_road_weight() {
-        let node_1 = Node { id: "node-1".to_string(), x: -71.085743, y: 42.343212 };
-        let node_2 = Node { id: "node-2".to_string(), x: -71.087792, y: 42.347249 };
+        let node_1 = Node { id: "node-1".to_string(), x: -71.085743, y: 42.343212,..Default::default() };
+        let node_2 = Node { id: "node-2".to_string(), x: -71.087792, y: 42.347249, ..Default::default() };
 
         let motorway_weight = road_weight(&node_1, &node_2, "motorway");
         let road_type_weight = road_weight(&node_1, &node_2, "road");
         let service_weight = road_weight(&node_1, &node_2, "service");
         let not_a_road_weight = road_weight(&node_1, &node_2, "notaroad");
 
-        assert!(floats_nearly_eq(motorway_weight.unwrap(), 0.4794 / 110.0));
-        assert!(floats_nearly_eq(road_type_weight.unwrap(), 0.4794 / 40.0));
-        assert!(floats_nearly_eq(service_weight.unwrap(), 0.4794 / 5.0));
+        assert_eq!(motorway_weight.unwrap(), 15);
+        assert_eq!(road_type_weight.unwrap(), 43);
+        assert_eq!(service_weight.unwrap(), 345);
         assert_eq!(not_a_road_weight, None);
     }
 }

@@ -118,7 +118,6 @@ mod test {
     use super::{ build_graph_from_xml };
     use weighted_graph:: { Graph, Node };
     use road_weights::road_weight;
-    use test_helpers::floats_nearly_eq;
 
     fn has_node_ids(graph: &Graph) -> bool {
         vec!["292403538", "298884289", "261728686", "298884272"].iter().all(|id|
@@ -131,7 +130,8 @@ mod test {
             Some(node) => {
                 node == &Node { id: "292403538".to_string(),
                                 x: 12.2482632,
-                                y: 54.0901746
+                                y: 54.0901746,
+                                ..Default::default()
                               }
             }
             None => false
@@ -156,20 +156,18 @@ mod test {
                 edges.iter().any(|edge|
                     edge.from_id == "298884289" &&
                     edge.to_id == "292403538" &&
-                    floats_nearly_eq(
-                        edge.weight,
-                        road_weight(graph.get_node("298884289").unwrap(),
-                                    graph.get_node("292403538").unwrap(),
-                                    "unclassified").unwrap())
+                        (edge.weight ==
+                            road_weight(graph.get_node("298884289").unwrap(),
+                                        graph.get_node("292403538").unwrap(),
+                                        "unclassified").unwrap())
                 ) &&
                 edges.iter().any(|edge|
                     edge.from_id == "298884289" &&
                     edge.to_id == "261728686" &&
-                    floats_nearly_eq(
-                        edge.weight,
-                        road_weight(graph.get_node("298884289").unwrap(),
-                                    graph.get_node("261728686").unwrap(),
-                                    "unclassified").unwrap())
+                        (edge.weight ==
+                            road_weight(graph.get_node("298884289").unwrap(),
+                                        graph.get_node("261728686").unwrap(),
+                                        "unclassified").unwrap())
                 )
             }
             None => false
