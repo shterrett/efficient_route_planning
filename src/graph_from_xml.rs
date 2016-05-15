@@ -3,13 +3,14 @@ extern crate xml;
 use std::fs::File;
 use std::io::BufReader;
 use std::collections::HashMap;
+use std::hash::Hash;
 use self::xml::attribute::OwnedAttribute;
 use self::xml::reader::{ EventReader, XmlEvent };
 
 use weighted_graph::Graph;
 use road_weights::road_weight;
 
-pub fn build_graph_from_xml(path: &str) -> Graph {
+pub fn build_graph_from_xml(path: &str) -> Graph<String> {
     let file = File::open(path).unwrap();
     let reader = BufReader::new(file);
 
@@ -67,7 +68,7 @@ pub fn build_graph_from_xml(path: &str) -> Graph {
     graph
 }
 
-fn add_node(graph: &mut Graph, attributes: &Vec<OwnedAttribute>) {
+fn add_node(graph: &mut Graph<String>, attributes: &Vec<OwnedAttribute>) {
     let mut map = HashMap::new();
     let mut atrb = attributes.iter().fold(&mut map, |m, attribute| {
                     m.insert(attribute.name.local_name.clone(),
@@ -81,7 +82,7 @@ fn add_node(graph: &mut Graph, attributes: &Vec<OwnedAttribute>) {
     )
 }
 
-fn add_edge(graph: &mut Graph, edge_id: &String, edge_type: &str, nodes: &Vec<String>) {
+fn add_edge(graph: &mut Graph<String>, edge_id: &String, edge_type: &str, nodes: &Vec<String>) {
     let mut pairs = nodes.windows(2);
     while let Some(pair) = pairs.next() {
         match road_weight(graph.get_node(&pair[0]).unwrap(),
@@ -130,8 +131,7 @@ mod test {
             Some(node) => {
                 node == &Node { id: "292403538".to_string(),
                                 x: 12.2482632,
-                                y: 54.0901746,
-                                ..Default::default()
+                                y: 54.0901746
                               }
             }
             None => false

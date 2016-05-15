@@ -1,13 +1,16 @@
 use std::collections::{ HashSet };
+use std::hash::Hash;
 use weighted_graph::{ Graph, NodeId };
 use dijkstra::shortest_path;
 
-pub fn reduce_to_largest_connected_component(graph: Graph) -> Graph {
+pub fn reduce_to_largest_connected_component<T>(graph: Graph<T>) -> Graph<T>
+       where T: Clone + Hash + Eq {
     let untested_nodes = node_ids(&graph);
     reducer(graph, untested_nodes, vec![])
 }
 
-fn reducer(graph: Graph, untested_nodes: HashSet<NodeId>, mut results: Vec<HashSet<NodeId>>) -> Graph {
+fn reducer<T>(graph: Graph<T>, untested_nodes: HashSet<T>, mut results: Vec<HashSet<T>>) -> Graph<T>
+   where T: Clone + Hash + Eq {
     match untested_nodes.iter().next() {
         None => {
             collapsed_graph(&graph, &results)
@@ -26,14 +29,15 @@ fn reducer(graph: Graph, untested_nodes: HashSet<NodeId>, mut results: Vec<HashS
     }
 }
 
-fn explore_from(root: &NodeId, graph: &Graph) -> HashSet<NodeId> {
+fn explore_from<T: Clone + Hash + Eq>(root: &T, graph: &Graph<T>) -> HashSet<T> {
     let (_, results) = shortest_path(graph, root, None);
     results.values()
            .map(|result| result.id.clone())
            .collect()
 }
 
-fn collapsed_graph(graph: &Graph, results: &Vec<HashSet<NodeId>>) -> Graph {
+fn collapsed_graph<T>(graph: &Graph<T>, results: &Vec<HashSet<T>>) -> Graph<T>
+   where T: Clone + Hash + Eq {
     let mut new_graph = Graph::new();
     if let Some(nodes) = results.iter().max_by_key(|results| results.len()) {
         for node_id in nodes {
@@ -46,15 +50,17 @@ fn collapsed_graph(graph: &Graph, results: &Vec<HashSet<NodeId>>) -> Graph {
     new_graph
 }
 
-fn add_node(old_graph: &Graph, mut new_graph: &mut Graph, id: &NodeId) {
+fn add_node<T>(old_graph: &Graph<T>, mut new_graph: &mut Graph<T>, id: &T)
+   where T: Clone + Hash + Eq {
     if let Some(node) = old_graph.get_node(id) {
         new_graph.add_node(id.clone(),
-                        node.x,
-                        node.y);
+                           node.x,
+                           node.y);
     }
 }
 
-fn add_edges(old_graph: &Graph, mut new_graph: &mut Graph, id: &NodeId) {
+fn add_edges<T>(old_graph: &Graph<T>, mut new_graph: &mut Graph<T>, id: &T)
+   where T: Clone + Hash + Eq {
     if let Some(edges) = old_graph.get_edges(id) {
         for edge in edges {
             new_graph.add_edge(edge.id.clone(),
@@ -65,11 +71,12 @@ fn add_edges(old_graph: &Graph, mut new_graph: &mut Graph, id: &NodeId) {
     }
 }
 
-fn node_ids(graph: &Graph) -> HashSet<NodeId> {
+fn node_ids<T>(graph: &Graph<T>) -> HashSet<T>
+   where T: Clone + Hash + Eq {
     graph.all_nodes()
         .iter()
         .map(|node| node.id.clone())
-        .collect::<HashSet<NodeId>>()
+        .collect::<HashSet<T>>()
 }
 
 #[cfg(test)]

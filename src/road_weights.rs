@@ -1,5 +1,6 @@
 use std::f64;
 use std::collections::HashMap;
+use std::hash::Hash;
 use weighted_graph::Node;
 
 lazy_static! {
@@ -25,7 +26,8 @@ lazy_static! {
     static ref RADIUS_EARTH_METERS: f64 = 6371000.0;
 }
 
-pub fn road_weight(from: &Node, to: &Node, road_type: &str) -> Option<i64> {
+pub fn road_weight<T>(from: &Node<T>, to: &Node<T>, road_type: &str) -> Option<i64>
+   where T: Clone + Hash + Eq {
     ROAD_TYPE_SPEED.get(road_type).map(|speed|
        ((haversine(from.x, from.y, to.x, to.y) / *speed as f64) * 3600.0) as i64
     )
@@ -70,8 +72,8 @@ mod test {
 
     #[test]
     fn test_road_weight() {
-        let node_1 = Node { id: "node-1".to_string(), x: -71.085743, y: 42.343212,..Default::default() };
-        let node_2 = Node { id: "node-2".to_string(), x: -71.087792, y: 42.347249, ..Default::default() };
+        let node_1 = Node { id: "node-1".to_string(), x: -71.085743, y: 42.343212 };
+        let node_2 = Node { id: "node-2".to_string(), x: -71.087792, y: 42.347249 };
 
         let motorway_weight = road_weight(&node_1, &node_2, "motorway");
         let road_type_weight = road_weight(&node_1, &node_2, "road");
