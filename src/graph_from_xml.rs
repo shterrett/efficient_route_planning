@@ -119,13 +119,13 @@ mod test {
     use weighted_graph:: { Graph, Node };
     use road_weights::road_weight;
 
-    fn has_node_ids(graph: &Graph) -> bool {
+    fn has_node_ids(graph: &Graph<&str>) -> bool {
         vec!["292403538", "298884289", "261728686", "298884272"].iter().all(|id|
             graph.get_node(id).is_some()
         )
     }
 
-    fn node_spot_check(graph: &Graph) -> bool {
+    fn node_spot_check(graph: &Graph<&str>) -> bool {
         match graph.get_node("292403538") {
             Some(node) => {
                 node == &Node { id: "292403538".to_string(),
@@ -137,7 +137,7 @@ mod test {
         }
     }
 
-    fn has_edges_for_nodes(graph: &Graph) -> bool {
+    fn has_edges_for_nodes(graph: &Graph<&str>) -> bool {
         vec![("292403538", 2),
              ("298884289", 2),
              ("261728686", 2),
@@ -148,7 +148,7 @@ mod test {
             )
     }
 
-    fn edge_spot_check(graph: &Graph) -> bool {
+    fn edge_spot_check(graph: &Graph<&str>) -> bool {
         match graph.get_edges("298884289") {
             Some(edges) => {
                 edges.len() == 2 &&

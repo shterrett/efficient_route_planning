@@ -72,21 +72,21 @@ mod test {
     use weighted_graph::Graph;
     use super::{ shortest_path, CurrentBest };
 
-    fn build_graph() ->  Graph {
+    fn build_graph() ->  Graph<&'static str> {
         let mut graph = Graph::new();
-        graph.add_node("1".to_string(), 1.0, 1.0);
-        graph.add_node("2".to_string(), 1.0, 2.0);
-        graph.add_node("3".to_string(), 2.0, 1.0);
-        graph.add_node("4".to_string(), 2.0, 2.0);
-        graph.add_node("5".to_string(), 2.0, 3.0);
-        graph.add_node("6".to_string(), 3.0, 1.0);
+        graph.add_node("1", 1.0, 1.0);
+        graph.add_node("2", 1.0, 2.0);
+        graph.add_node("3", 2.0, 1.0);
+        graph.add_node("4", 2.0, 2.0);
+        graph.add_node("5", 2.0, 3.0);
+        graph.add_node("6", 3.0, 1.0);
 
-        let edges = vec![("a".to_string(), "1".to_string(), "4".to_string(), 1),
-                         ("b".to_string(), "4".to_string(), "2".to_string(), 4),
-                         ("c".to_string(), "2".to_string(), "5".to_string(), 3),
-                         ("d".to_string(), "5".to_string(), "6".to_string(), 3),
-                         ("e".to_string(), "6".to_string(), "3".to_string(), 1),
-                         ("f".to_string(), "6".to_string(), "4".to_string(), 2)];
+        let edges = vec![("a", "1", "4", 1),
+                         ("b", "4", "2", 4),
+                         ("c", "2", "5", 3),
+                         ("d", "5", "6", 3),
+                         ("e", "6", "3", 1),
+                         ("f", "6", "4", 2)];
 
         let mut iter = edges.into_iter();
 
@@ -100,8 +100,8 @@ mod test {
 
     #[test]
     fn orderable_node_ref() {
-        let less = CurrentBest { id: "less".to_string(), cost: 1, predecessor: "".to_string() };
-        let more = CurrentBest { id: "more".to_string(), cost: 5, predecessor: "".to_string() };
+        let less = CurrentBest { id: "less", cost: 1, predecessor: "" };
+        let more = CurrentBest { id: "more", cost: 5, predecessor: "" };
 
         assert!(less > more);
         assert!(more < less);
@@ -127,29 +127,29 @@ mod test {
     fn find_all_shortest_paths() {
         let graph = build_graph();
         let mut expected = HashMap::new();
-        expected.insert("1".to_string(), CurrentBest { id: "1".to_string(),
-                                                       cost: 0,
-                                                       predecessor: "".to_string()
+        expected.insert("1", CurrentBest { id: "1",
+                                           cost: 0,
+                                           predecessor: ""
                                                 });
-        expected.insert("2".to_string(), CurrentBest { id: "2".to_string(),
-                                                       cost: 5,
-                                                       predecessor: "4".to_string()
+        expected.insert("2", CurrentBest { id: "2",
+                                           cost: 5,
+                                           predecessor: "4"
                                                 });
-        expected.insert("3".to_string(), CurrentBest { id: "3".to_string(),
-                                                       cost: 4,
-                                                       predecessor: "6".to_string()
+        expected.insert("3", CurrentBest { id: "3",
+                                           cost: 4,
+                                           predecessor: "6"
                                                 });
-        expected.insert("4".to_string(), CurrentBest { id: "4".to_string(),
-                                                       cost: 1,
-                                                       predecessor: "1".to_string()
+        expected.insert("4", CurrentBest { id: "4",
+                                           cost: 1,
+                                           predecessor: "1"
                                                 });
-        expected.insert("5".to_string(), CurrentBest { id: "5".to_string(),
-                                                       cost: 6,
-                                                       predecessor: "6".to_string()
+        expected.insert("5", CurrentBest { id: "5",
+                                           cost: 6,
+                                           predecessor: "6"
                                                 });
-        expected.insert("6".to_string(), CurrentBest { id: "6".to_string(),
-                                                       cost: 3,
-                                                       predecessor: "4".to_string()
+        expected.insert("6", CurrentBest { id: "6",
+                                           cost: 3,
+                                           predecessor: "4"
                                                 });
 
         let (_, results) = shortest_path(&graph, "1", None);

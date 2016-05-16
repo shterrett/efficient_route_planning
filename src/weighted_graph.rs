@@ -2,8 +2,6 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::borrow::Borrow;
 
-type NodeId = String;
-
 #[derive(Debug)]
 pub struct Graph<T: Clone + Hash + Eq> {
     nodes: HashMap<T, Node<T>>,
@@ -92,14 +90,14 @@ mod test {
     fn build_graph() {
         let mut graph = Graph::new();
 
-        graph.add_node("1".to_string(), 1.0, 1.0);
-        graph.add_node("2".to_string(), 3.0, 5.0);
+        graph.add_node("1", 1.0, 1.0);
+        graph.add_node("2", 3.0, 5.0);
 
         let node_1 = graph.get_node("1");
         assert!(node_1.is_some());
         match node_1 {
             Some(node) => {
-                assert_eq!(node.id, "1".to_string());
+                assert_eq!(node.id, "1");
                 assert!(floats_nearly_eq(node.x, 1.0));
                 assert!(floats_nearly_eq(node.y, 1.0));
             }
@@ -110,7 +108,7 @@ mod test {
         assert!(node_2.is_some());
         match node_2 {
             Some(node) => {
-                assert_eq!(node.id, "2".to_string());
+                assert_eq!(node.id, "2");
                 assert!(floats_nearly_eq(node.x, 3.0));
                 assert!(floats_nearly_eq(node.y, 5.0));
             }
@@ -125,32 +123,32 @@ mod test {
     fn adding_edges() {
         let mut graph = Graph::new();
 
-        graph.add_node("n1".to_string(), 0.0, 12.0);
-        graph.add_node("n2".to_string(), 5.0, 0.0);
-        graph.add_node("n3".to_string(), 2.0, 4.0);
+        graph.add_node("n1", 0.0, 12.0);
+        graph.add_node("n2", 5.0, 0.0);
+        graph.add_node("n3", 2.0, 4.0);
 
-        graph.add_edge("e1".to_string(), "n2".to_string(), "n1".to_string(), 13);
-        graph.add_edge("e2".to_string(), "n3".to_string(), "n2".to_string(), 5);
-        graph.add_edge("e3".to_string(), "n2".to_string(), "n3".to_string(), 5);
+        graph.add_edge("e1", "n2", "n1", 13);
+        graph.add_edge("e2", "n3", "n2", 5);
+        graph.add_edge("e3", "n2", "n3", 5);
 
         let edges_n1 = graph.get_edges("n1");
         let edges_n2 = graph.get_edges("n2");
         let edges_n3 = graph.get_edges("n3");
 
         assert_eq!(edges_n1, None);
-        assert_eq!(edges_n2, Some(&vec![Edge { id: "e1".to_string(),
-                                               from_id: "n2".to_string(),
-                                               to_id: "n1".to_string(),
+        assert_eq!(edges_n2, Some(&vec![Edge { id: "e1",
+                                               from_id: "n2",
+                                               to_id: "n1",
                                                weight: 13
                                              },
-                                        Edge { id: "e3".to_string(),
-                                               from_id: "n2".to_string(),
-                                               to_id: "n3".to_string(),
+                                        Edge { id: "e3",
+                                               from_id: "n2",
+                                               to_id: "n3",
                                                weight: 5
                                              }]));
-        assert_eq!(edges_n3, Some(&vec![Edge { id: "e2".to_string(),
-                                               from_id: "n3".to_string(),
-                                               to_id: "n2".to_string(),
+        assert_eq!(edges_n3, Some(&vec![Edge { id: "e2",
+                                               from_id: "n3",
+                                               to_id: "n2",
                                                weight: 5
                                              }]));
     }
@@ -159,18 +157,14 @@ mod test {
     fn returns_all_nodes() {
         let mut graph = Graph::new();
 
-        graph.add_node("n1".to_string(), 0.0, 12.0);
-        graph.add_node("n2".to_string(), 5.0, 0.0);
-        graph.add_node("n3".to_string(), 2.0, 4.0);
-
-        let n1 = "n1".to_string();
-        let n2 = "n2".to_string();
-        let n3 = "n3".to_string();
+        graph.add_node("n1", 0.0, 12.0);
+        graph.add_node("n2", 5.0, 0.0);
+        graph.add_node("n3", 2.0, 4.0);
 
         let mut expected_node_ids = HashSet::new();
-        expected_node_ids.insert(&n1);
-        expected_node_ids.insert(&n2);
-        expected_node_ids.insert(&n3);
+        expected_node_ids.insert("n1");
+        expected_node_ids.insert("n2");
+        expected_node_ids.insert("n3");
 
         let nodes = graph.all_nodes()
                          .iter()
