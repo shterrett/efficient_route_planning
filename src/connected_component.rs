@@ -1,6 +1,6 @@
 use std::collections::{ HashSet };
 use std::hash::Hash;
-use weighted_graph::{ Graph, NodeId };
+use weighted_graph::Graph;
 use dijkstra::shortest_path;
 
 pub fn reduce_to_largest_connected_component<T>(graph: Graph<T>) -> Graph<T>
@@ -16,7 +16,7 @@ fn reducer<T>(graph: Graph<T>, untested_nodes: HashSet<T>, mut results: Vec<Hash
             collapsed_graph(&graph, &results)
         }
         Some(root) => {
-            let connected_nodes = explore_from(&root, &graph);
+            let connected_nodes = explore_from(root, &graph);
             let difference = untested_nodes.difference(&connected_nodes)
                                            .cloned()
                                            .collect();

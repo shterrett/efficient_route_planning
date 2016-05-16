@@ -2,7 +2,7 @@ use std::collections::{ BinaryHeap, HashMap };
 use std::hash::Hash;
 use std::cmp::Ordering;
 
-use weighted_graph::{ Graph, NodeId };
+use weighted_graph::Graph;
 
 pub fn shortest_path<T>(graph: &Graph<T>,
                      source: &T,

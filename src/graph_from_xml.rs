@@ -3,7 +3,6 @@ extern crate xml;
 use std::fs::File;
 use std::io::BufReader;
 use std::collections::HashMap;
-use std::hash::Hash;
 use self::xml::attribute::OwnedAttribute;
 use self::xml::reader::{ EventReader, XmlEvent };
 
