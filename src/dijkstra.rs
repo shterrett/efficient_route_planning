@@ -110,15 +110,15 @@ mod test {
     #[test]
     fn graph() {
         let graph = build_graph();
-        assert!(graph.get_node("3").is_some());
-        assert!(graph.get_edges("3").is_some());
+        assert!(graph.get_node(&"3").is_some());
+        assert!(graph.get_edges(&"3").is_some());
     }
 
     #[test]
     fn find_shortest_path() {
         let graph = build_graph();
 
-        let (cost, _) = shortest_path(&graph, "1", Some("5"));
+        let (cost, _) = shortest_path(&graph, &"1", Some(&"5"));
 
         assert_eq!(cost, 6);
     }
@@ -129,30 +129,30 @@ mod test {
         let mut expected = HashMap::new();
         expected.insert("1", CurrentBest { id: "1",
                                            cost: 0,
-                                           predecessor: ""
-                                                });
+                                           predecessor: "1"
+                                         });
         expected.insert("2", CurrentBest { id: "2",
                                            cost: 5,
                                            predecessor: "4"
-                                                });
+                                         });
         expected.insert("3", CurrentBest { id: "3",
                                            cost: 4,
                                            predecessor: "6"
-                                                });
+                                         });
         expected.insert("4", CurrentBest { id: "4",
                                            cost: 1,
                                            predecessor: "1"
-                                                });
+                                         });
         expected.insert("5", CurrentBest { id: "5",
                                            cost: 6,
                                            predecessor: "6"
-                                                });
+                                         });
         expected.insert("6", CurrentBest { id: "6",
                                            cost: 3,
                                            predecessor: "4"
-                                                });
+                                         });
 
-        let (_, results) = shortest_path(&graph, "1", None);
+        let (_, results) = shortest_path(&graph, &"1", None);
 
         assert_eq!(results, expected);
     }

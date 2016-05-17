@@ -93,7 +93,7 @@ mod test {
         graph.add_node("1", 1.0, 1.0);
         graph.add_node("2", 3.0, 5.0);
 
-        let node_1 = graph.get_node("1");
+        let node_1 = graph.get_node(&"1");
         assert!(node_1.is_some());
         match node_1 {
             Some(node) => {
@@ -104,7 +104,7 @@ mod test {
             None => {}
         }
 
-        let node_2 = graph.get_node("2");
+        let node_2 = graph.get_node(&"2");
         assert!(node_2.is_some());
         match node_2 {
             Some(node) => {
@@ -115,7 +115,7 @@ mod test {
             None => {}
         }
 
-        let still_present = graph.get_node("1");
+        let still_present = graph.get_node(&"1");
         assert!(still_present.is_some());
     }
 
@@ -131,9 +131,9 @@ mod test {
         graph.add_edge("e2", "n3", "n2", 5);
         graph.add_edge("e3", "n2", "n3", 5);
 
-        let edges_n1 = graph.get_edges("n1");
-        let edges_n2 = graph.get_edges("n2");
-        let edges_n3 = graph.get_edges("n3");
+        let edges_n1 = graph.get_edges(&"n1");
+        let edges_n2 = graph.get_edges(&"n2");
+        let edges_n3 = graph.get_edges(&"n3");
 
         assert_eq!(edges_n1, None);
         assert_eq!(edges_n2, Some(&vec![Edge { id: "e1",
@@ -168,8 +168,8 @@ mod test {
 
         let nodes = graph.all_nodes()
                          .iter()
-                         .map(|n| &n.id)
-                         .collect::<HashSet<&String>>();
+                         .map(|n| n.id)
+                         .collect::<HashSet<&str>>();
 
         assert_eq!(nodes, expected_node_ids);
     }

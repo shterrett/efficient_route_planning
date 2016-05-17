@@ -181,38 +181,38 @@ mod test {
         let nodes_from_seven: Vec<&str> = new_graph.get_edges(&node_id)
                                                     .map(|edges|
                                                         edges.iter()
-                                                            .map(|edge| &edge.to_id)
+                                                            .map(|edge| edge.to_id)
                                                             .collect())
                                                     .unwrap();
         let nodes_from_nine: Vec<&str> = new_graph.get_edges(&"9")
                                                    .map(|edges|
                                                         edges.iter()
-                                                             .map(|edge| &edge.to_id)
+                                                             .map(|edge| edge.to_id)
                                                              .collect())
                                                    .unwrap();
 
-        assert_eq!(nodes_from_seven, vec![&"9"]);
-        assert_eq!(nodes_from_nine, vec![&"7"]);
+        assert_eq!(nodes_from_seven, vec!["9"]);
+        assert_eq!(nodes_from_nine, vec!["7"]);
     }
 
     #[test]
     fn find_connected_component() {
         let graph = build_graph();
 
-        assert!(graph.get_node("7").is_some());
-        assert!(graph.get_node("8").is_some());
-        assert!(graph.get_node("9").is_some());
+        assert!(graph.get_node(&"7").is_some());
+        assert!(graph.get_node(&"8").is_some());
+        assert!(graph.get_node(&"9").is_some());
 
         let connected_graph = reduce_to_largest_connected_component(graph);
 
-        assert!(connected_graph.get_node("7").is_none());
-        assert!(connected_graph.get_node("8").is_none());
-        assert!(connected_graph.get_node("9").is_none());
-        assert!(connected_graph.get_node("1").is_some());
-        assert!(connected_graph.get_node("2").is_some());
-        assert!(connected_graph.get_node("3").is_some());
-        assert!(connected_graph.get_node("4").is_some());
-        assert!(connected_graph.get_node("5").is_some());
-        assert!(connected_graph.get_node("6").is_some());
+        assert!(connected_graph.get_node(&"7").is_none());
+        assert!(connected_graph.get_node(&"8").is_none());
+        assert!(connected_graph.get_node(&"9").is_none());
+        assert!(connected_graph.get_node(&"1").is_some());
+        assert!(connected_graph.get_node(&"2").is_some());
+        assert!(connected_graph.get_node(&"3").is_some());
+        assert!(connected_graph.get_node(&"4").is_some());
+        assert!(connected_graph.get_node(&"5").is_some());
+        assert!(connected_graph.get_node(&"6").is_some());
     }
 }

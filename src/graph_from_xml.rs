@@ -119,14 +119,14 @@ mod test {
     use weighted_graph:: { Graph, Node };
     use road_weights::road_weight;
 
-    fn has_node_ids(graph: &Graph<&str>) -> bool {
+    fn has_node_ids(graph: &Graph<String>) -> bool {
         vec!["292403538", "298884289", "261728686", "298884272"].iter().all(|id|
-            graph.get_node(id).is_some()
+            graph.get_node(&id.to_string()).is_some()
         )
     }
 
-    fn node_spot_check(graph: &Graph<&str>) -> bool {
-        match graph.get_node("292403538") {
+    fn node_spot_check(graph: &Graph<String>) -> bool {
+        match graph.get_node(&"292403538".to_string()) {
             Some(node) => {
                 node == &Node { id: "292403538".to_string(),
                                 x: 12.2482632,
@@ -137,35 +137,35 @@ mod test {
         }
     }
 
-    fn has_edges_for_nodes(graph: &Graph<&str>) -> bool {
-        vec![("292403538", 2),
-             ("298884289", 2),
-             ("261728686", 2),
-             ("298884272", 2)]
+    fn has_edges_for_nodes(graph: &Graph<String>) -> bool {
+        vec![("292403538".to_string(), 2),
+             ("298884289".to_string(), 2),
+             ("261728686".to_string(), 2),
+             ("298884272".to_string(), 2)]
             .iter().all(|t|
-                graph.get_edges(t.0).is_some() &&
-                  graph.get_edges(t.0).unwrap().len() == t.1
+                graph.get_edges(&t.0).is_some() &&
+                  graph.get_edges(&t.0).unwrap().len() == t.1
             )
     }
 
-    fn edge_spot_check(graph: &Graph<&str>) -> bool {
-        match graph.get_edges("298884289") {
+    fn edge_spot_check(graph: &Graph<String>) -> bool {
+        match graph.get_edges(&"298884289".to_string()) {
             Some(edges) => {
                 edges.len() == 2 &&
                 edges.iter().any(|edge|
                     edge.from_id == "298884289" &&
                     edge.to_id == "292403538" &&
                         (edge.weight ==
-                            road_weight(graph.get_node("298884289").unwrap(),
-                                        graph.get_node("292403538").unwrap(),
+                            road_weight(graph.get_node(&"298884289".to_string()).unwrap(),
+                                        graph.get_node(&"292403538".to_string()).unwrap(),
                                         "unclassified").unwrap())
                 ) &&
                 edges.iter().any(|edge|
                     edge.from_id == "298884289" &&
                     edge.to_id == "261728686" &&
                         (edge.weight ==
-                            road_weight(graph.get_node("298884289").unwrap(),
-                                        graph.get_node("261728686").unwrap(),
+                            road_weight(graph.get_node(&"298884289".to_string()).unwrap(),
+                                        graph.get_node(&"261728686".to_string()).unwrap(),
                                         "unclassified").unwrap())
                 )
             }
@@ -179,7 +179,6 @@ mod test {
 
         assert!(has_node_ids(&graph));
         assert!(node_spot_check(&graph));
-        println!("{:?}", graph);
         assert!(has_edges_for_nodes(&graph));
         assert!(edge_spot_check(&graph));
     }
