@@ -1,23 +1,25 @@
 use std::collections::{ BinaryHeap, HashMap };
+use std::hash::Hash;
 use std::cmp::Ordering;
 
-use weighted_graph::{ Graph, NodeId };
+use weighted_graph::Graph;
 
-pub fn shortest_path(graph: &Graph,
-                     source: &str,
-                     destination: Option<&str>
-                    ) -> (i64, HashMap<NodeId, CurrentBest>) {
+pub fn shortest_path<T>(graph: &Graph<T>,
+                     source: &T,
+                     destination: Option<&T>
+                    ) -> (i64, HashMap<T, CurrentBest<T>>)
+   where T: Clone + Hash + Eq {
 
     let mut min_heap = BinaryHeap::new();
     let mut results = HashMap::new();
 
-    let initial = CurrentBest { id: source.to_string(), cost: 0, predecessor: "".to_string() };
-    results.insert(source.to_string(), initial.clone());
+    let initial = CurrentBest { id: source.clone(), cost: 0, predecessor: source.clone() };
+    results.insert(source.clone(), initial.clone());
     min_heap.push(initial.clone());
 
     while let Some(current) = min_heap.pop() {
         if let Some(target) = destination {
-            if current.id == target {
+            if current.id == *target {
                 return (current.cost, results)
             }
         }
@@ -26,7 +28,7 @@ pub fn shortest_path(graph: &Graph,
             for edge in edges.iter() {
                 if let Some(node) = graph.get_node(&edge.to_id) {
                     let node_cost = results.get(&node.id)
-                                            .map_or(i64::max_value(), |node| node.cost);
+                                           .map_or(i64::max_value(), |node| node.cost);
                     if current.cost + edge.weight < node_cost {
                         let hnode = CurrentBest { id: node.id.clone(),
                                                   cost: current.cost + edge.weight,
@@ -43,21 +45,23 @@ pub fn shortest_path(graph: &Graph,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
-pub struct CurrentBest {
+pub struct CurrentBest<T: Clone + Hash + Eq> {
     pub cost: i64,
-    pub id: NodeId,
-    pub predecessor: NodeId
+    pub id: T,
+    pub predecessor: T
 }
 
-impl Ord for CurrentBest {
+impl<T> Ord for CurrentBest<T>
+        where T: Clone + Hash + Eq {
     // flip order so min-heap instead of max-heap
-    fn cmp(&self, other: &CurrentBest) -> Ordering {
+    fn cmp(&self, other: &CurrentBest<T>) -> Ordering {
         other.cost.cmp(&self.cost)
     }
 }
 
-impl PartialOrd for CurrentBest {
-    fn partial_cmp(&self, other: &CurrentBest) -> Option<Ordering> {
+impl<T> PartialOrd for CurrentBest<T>
+        where T: Clone + Hash + Eq {
+    fn partial_cmp(&self, other: &CurrentBest<T>) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
@@ -68,21 +72,21 @@ mod test {
     use weighted_graph::Graph;
     use super::{ shortest_path, CurrentBest };
 
-    fn build_graph() ->  Graph {
+    fn build_graph() ->  Graph<&'static str> {
         let mut graph = Graph::new();
-        graph.add_node("1".to_string(), 1.0, 1.0);
-        graph.add_node("2".to_string(), 1.0, 2.0);
-        graph.add_node("3".to_string(), 2.0, 1.0);
-        graph.add_node("4".to_string(), 2.0, 2.0);
-        graph.add_node("5".to_string(), 2.0, 3.0);
-        graph.add_node("6".to_string(), 3.0, 1.0);
+        graph.add_node("1", 1.0, 1.0);
+        graph.add_node("2", 1.0, 2.0);
+        graph.add_node("3", 2.0, 1.0);
+        graph.add_node("4", 2.0, 2.0);
+        graph.add_node("5", 2.0, 3.0);
+        graph.add_node("6", 3.0, 1.0);
 
-        let edges = vec![("a".to_string(), "1".to_string(), "4".to_string(), 1),
-                         ("b".to_string(), "4".to_string(), "2".to_string(), 4),
-                         ("c".to_string(), "2".to_string(), "5".to_string(), 3),
-                         ("d".to_string(), "5".to_string(), "6".to_string(), 3),
-                         ("e".to_string(), "6".to_string(), "3".to_string(), 1),
-                         ("f".to_string(), "6".to_string(), "4".to_string(), 2)];
+        let edges = vec![("a", "1", "4", 1),
+                         ("b", "4", "2", 4),
+                         ("c", "2", "5", 3),
+                         ("d", "5", "6", 3),
+                         ("e", "6", "3", 1),
+                         ("f", "6", "4", 2)];
 
         let mut iter = edges.into_iter();
 
@@ -96,8 +100,8 @@ mod test {
 
     #[test]
     fn orderable_node_ref() {
-        let less = CurrentBest { id: "less".to_string(), cost: 1, predecessor: "".to_string() };
-        let more = CurrentBest { id: "more".to_string(), cost: 5, predecessor: "".to_string() };
+        let less = CurrentBest { id: "less", cost: 1, predecessor: "" };
+        let more = CurrentBest { id: "more", cost: 5, predecessor: "" };
 
         assert!(less > more);
         assert!(more < less);
@@ -106,15 +110,15 @@ mod test {
     #[test]
     fn graph() {
         let graph = build_graph();
-        assert!(graph.get_node("3").is_some());
-        assert!(graph.get_edges("3").is_some());
+        assert!(graph.get_node(&"3").is_some());
+        assert!(graph.get_edges(&"3").is_some());
     }
 
     #[test]
     fn find_shortest_path() {
         let graph = build_graph();
 
-        let (cost, _) = shortest_path(&graph, "1", Some("5"));
+        let (cost, _) = shortest_path(&graph, &"1", Some(&"5"));
 
         assert_eq!(cost, 6);
     }
@@ -123,32 +127,32 @@ mod test {
     fn find_all_shortest_paths() {
         let graph = build_graph();
         let mut expected = HashMap::new();
-        expected.insert("1".to_string(), CurrentBest { id: "1".to_string(),
-                                                       cost: 0,
-                                                       predecessor: "".to_string()
-                                                });
-        expected.insert("2".to_string(), CurrentBest { id: "2".to_string(),
-                                                       cost: 5,
-                                                       predecessor: "4".to_string()
-                                                });
-        expected.insert("3".to_string(), CurrentBest { id: "3".to_string(),
-                                                       cost: 4,
-                                                       predecessor: "6".to_string()
-                                                });
-        expected.insert("4".to_string(), CurrentBest { id: "4".to_string(),
-                                                       cost: 1,
-                                                       predecessor: "1".to_string()
-                                                });
-        expected.insert("5".to_string(), CurrentBest { id: "5".to_string(),
-                                                       cost: 6,
-                                                       predecessor: "6".to_string()
-                                                });
-        expected.insert("6".to_string(), CurrentBest { id: "6".to_string(),
-                                                       cost: 3,
-                                                       predecessor: "4".to_string()
-                                                });
+        expected.insert("1", CurrentBest { id: "1",
+                                           cost: 0,
+                                           predecessor: "1"
+                                         });
+        expected.insert("2", CurrentBest { id: "2",
+                                           cost: 5,
+                                           predecessor: "4"
+                                         });
+        expected.insert("3", CurrentBest { id: "3",
+                                           cost: 4,
+                                           predecessor: "6"
+                                         });
+        expected.insert("4", CurrentBest { id: "4",
+                                           cost: 1,
+                                           predecessor: "1"
+                                         });
+        expected.insert("5", CurrentBest { id: "5",
+                                           cost: 6,
+                                           predecessor: "6"
+                                         });
+        expected.insert("6", CurrentBest { id: "6",
+                                           cost: 3,
+                                           predecessor: "4"
+                                         });
 
-        let (_, results) = shortest_path(&graph, "1", None);
+        let (_, results) = shortest_path(&graph, &"1", None);
 
         assert_eq!(results, expected);
     }

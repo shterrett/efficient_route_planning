@@ -1,19 +1,22 @@
 use std::collections::{ HashSet };
-use weighted_graph::{ Graph, NodeId };
+use std::hash::Hash;
+use weighted_graph::Graph;
 use dijkstra::shortest_path;
 
-pub fn reduce_to_largest_connected_component(graph: Graph) -> Graph {
+pub fn reduce_to_largest_connected_component<T>(graph: Graph<T>) -> Graph<T>
+       where T: Clone + Hash + Eq {
     let untested_nodes = node_ids(&graph);
     reducer(graph, untested_nodes, vec![])
 }
 
-fn reducer(graph: Graph, untested_nodes: HashSet<NodeId>, mut results: Vec<HashSet<NodeId>>) -> Graph {
+fn reducer<T>(graph: Graph<T>, untested_nodes: HashSet<T>, mut results: Vec<HashSet<T>>) -> Graph<T>
+   where T: Clone + Hash + Eq {
     match untested_nodes.iter().next() {
         None => {
             collapsed_graph(&graph, &results)
         }
         Some(root) => {
-            let connected_nodes = explore_from(&root, &graph);
+            let connected_nodes = explore_from(root, &graph);
             let difference = untested_nodes.difference(&connected_nodes)
                                            .cloned()
                                            .collect();
@@ -26,14 +29,15 @@ fn reducer(graph: Graph, untested_nodes: HashSet<NodeId>, mut results: Vec<HashS
     }
 }
 
-fn explore_from(root: &NodeId, graph: &Graph) -> HashSet<NodeId> {
+fn explore_from<T: Clone + Hash + Eq>(root: &T, graph: &Graph<T>) -> HashSet<T> {
     let (_, results) = shortest_path(graph, root, None);
     results.values()
            .map(|result| result.id.clone())
            .collect()
 }
 
-fn collapsed_graph(graph: &Graph, results: &Vec<HashSet<NodeId>>) -> Graph {
+fn collapsed_graph<T>(graph: &Graph<T>, results: &Vec<HashSet<T>>) -> Graph<T>
+   where T: Clone + Hash + Eq {
     let mut new_graph = Graph::new();
     if let Some(nodes) = results.iter().max_by_key(|results| results.len()) {
         for node_id in nodes {
@@ -46,15 +50,17 @@ fn collapsed_graph(graph: &Graph, results: &Vec<HashSet<NodeId>>) -> Graph {
     new_graph
 }
 
-fn add_node(old_graph: &Graph, mut new_graph: &mut Graph, id: &NodeId) {
+fn add_node<T>(old_graph: &Graph<T>, mut new_graph: &mut Graph<T>, id: &T)
+   where T: Clone + Hash + Eq {
     if let Some(node) = old_graph.get_node(id) {
         new_graph.add_node(id.clone(),
-                        node.x,
-                        node.y);
+                           node.x,
+                           node.y);
     }
 }
 
-fn add_edges(old_graph: &Graph, mut new_graph: &mut Graph, id: &NodeId) {
+fn add_edges<T>(old_graph: &Graph<T>, mut new_graph: &mut Graph<T>, id: &T)
+   where T: Clone + Hash + Eq {
     if let Some(edges) = old_graph.get_edges(id) {
         for edge in edges {
             new_graph.add_edge(edge.id.clone(),
@@ -65,17 +71,18 @@ fn add_edges(old_graph: &Graph, mut new_graph: &mut Graph, id: &NodeId) {
     }
 }
 
-fn node_ids(graph: &Graph) -> HashSet<NodeId> {
+fn node_ids<T>(graph: &Graph<T>) -> HashSet<T>
+   where T: Clone + Hash + Eq {
     graph.all_nodes()
         .iter()
         .map(|node| node.id.clone())
-        .collect::<HashSet<NodeId>>()
+        .collect::<HashSet<T>>()
 }
 
 #[cfg(test)]
 mod test {
     use std::collections::HashSet;
-    use weighted_graph::{ Graph, NodeId };
+    use weighted_graph::Graph;
     use super::{ reduce_to_largest_connected_component,
                  node_ids,
                  explore_from,
@@ -83,27 +90,27 @@ mod test {
                  add_edges
                };
 
-    fn build_graph() ->  Graph {
+    fn build_graph() ->  Graph<&'static str> {
         let mut graph = Graph::new();
-        graph.add_node("1".to_string(), 1.0, 1.0);
-        graph.add_node("2".to_string(), 1.0, 2.0);
-        graph.add_node("3".to_string(), 2.0, 1.0);
-        graph.add_node("4".to_string(), 2.0, 2.0);
-        graph.add_node("5".to_string(), 2.0, 3.0);
-        graph.add_node("6".to_string(), 3.0, 1.0);
-        graph.add_node("7".to_string(), 4.0, 2.0);
-        graph.add_node("8".to_string(), 5.0, 3.0);
-        graph.add_node("9".to_string(), 5.0, 2.0);
+        graph.add_node("1", 1.0, 1.0);
+        graph.add_node("2", 1.0, 2.0);
+        graph.add_node("3", 2.0, 1.0);
+        graph.add_node("4", 2.0, 2.0);
+        graph.add_node("5", 2.0, 3.0);
+        graph.add_node("6", 3.0, 1.0);
+        graph.add_node("7", 4.0, 2.0);
+        graph.add_node("8", 5.0, 3.0);
+        graph.add_node("9", 5.0, 2.0);
 
-        let edges = vec![("a".to_string(), "1".to_string(), "4".to_string(), 1),
-                         ("b".to_string(), "4".to_string(), "2".to_string(), 4),
-                         ("c".to_string(), "2".to_string(), "5".to_string(), 3),
-                         ("d".to_string(), "5".to_string(), "6".to_string(), 3),
-                         ("e".to_string(), "6".to_string(), "3".to_string(), 1),
-                         ("f".to_string(), "6".to_string(), "4".to_string(), 2),
-                         ("g".to_string(), "7".to_string(), "8".to_string(), 1),
-                         ("h".to_string(), "8".to_string(), "9".to_string(), 3),
-                         ("i".to_string(), "9".to_string(), "7".to_string(), 2)];
+        let edges = vec![("a", "1", "4", 1),
+                         ("b", "4", "2", 4),
+                         ("c", "2", "5", 3),
+                         ("d", "5", "6", 3),
+                         ("e", "6", "3", 1),
+                         ("f", "6", "4", 2),
+                         ("g", "7", "8", 1),
+                         ("h", "8", "9", 3),
+                         ("i", "9", "7", 2)];
 
         let mut iter = edges.into_iter();
 
@@ -119,15 +126,15 @@ mod test {
     fn initial_node_ids() {
         let graph = build_graph();
 
-        let expected: HashSet<NodeId> =  vec!["1".to_string(),
-                                              "2".to_string(),
-                                              "3".to_string(),
-                                              "4".to_string(),
-                                              "5".to_string(),
-                                              "6".to_string(),
-                                              "7".to_string(),
-                                              "8".to_string(),
-                                              "9".to_string()].into_iter().collect();
+        let expected: HashSet<&str> =  vec!["1",
+                                            "2",
+                                            "3",
+                                            "4",
+                                            "5",
+                                            "6",
+                                            "7",
+                                            "8",
+                                            "9"].into_iter().collect();
 
         let nodes = node_ids(&graph);
 
@@ -138,13 +145,13 @@ mod test {
     fn return_connected_nodes() {
         let graph = build_graph();
 
-        let root = "9".to_string();
+        let root = "9";
 
         let connected_nodes = explore_from(&root, &graph);
-        let small_connection: HashSet<NodeId> = vec!["7".to_string(),
-                                                     "8".to_string(),
-                                                     root].into_iter()
-                                                          .collect();
+        let small_connection: HashSet<&str> = vec!["7",
+                                                   "8",
+                                                   root].into_iter()
+                                                        .collect();
 
         assert_eq!(connected_nodes, small_connection);
     }
@@ -152,7 +159,7 @@ mod test {
     #[test]
     fn test_add_node() {
         let graph = build_graph();
-        let node_id = "1".to_string();
+        let node_id = "1";
         let mut new_graph = Graph::new();
 
         add_node(&graph, &mut new_graph, &node_id);
@@ -163,49 +170,49 @@ mod test {
     #[test]
     fn test_add_edges() {
         let graph = build_graph();
-        let node_id = "7".to_string();
+        let node_id = "7";
         let mut new_graph = Graph::new();
 
         add_node(&graph, &mut new_graph, &node_id);
-        add_node(&graph, &mut new_graph, &"9".to_string());
+        add_node(&graph, &mut new_graph, &"9");
         add_edges(&graph, &mut new_graph, &node_id);
-        add_edges(&graph, &mut new_graph, &"9".to_string());
+        add_edges(&graph, &mut new_graph, &"9");
 
-        let nodes_from_seven: Vec<&NodeId> = new_graph.get_edges(&node_id)
-                                                      .map(|edges|
-                                                          edges.iter()
-                                                              .map(|edge| &edge.to_id)
-                                                              .collect())
-                                                      .unwrap();
-        let nodes_from_nine: Vec<&NodeId> = new_graph.get_edges(&"9".to_string())
-                                                     .map(|edges|
-                                                          edges.iter()
-                                                               .map(|edge| &edge.to_id)
-                                                               .collect())
-                                                     .unwrap();
+        let nodes_from_seven: Vec<&str> = new_graph.get_edges(&node_id)
+                                                    .map(|edges|
+                                                        edges.iter()
+                                                            .map(|edge| edge.to_id)
+                                                            .collect())
+                                                    .unwrap();
+        let nodes_from_nine: Vec<&str> = new_graph.get_edges(&"9")
+                                                   .map(|edges|
+                                                        edges.iter()
+                                                             .map(|edge| edge.to_id)
+                                                             .collect())
+                                                   .unwrap();
 
-        assert_eq!(nodes_from_seven, vec![&"9".to_string()]);
-        assert_eq!(nodes_from_nine, vec![&"7".to_string()]);
+        assert_eq!(nodes_from_seven, vec!["9"]);
+        assert_eq!(nodes_from_nine, vec!["7"]);
     }
 
     #[test]
     fn find_connected_component() {
         let graph = build_graph();
 
-        assert!(graph.get_node("7").is_some());
-        assert!(graph.get_node("8").is_some());
-        assert!(graph.get_node("9").is_some());
+        assert!(graph.get_node(&"7").is_some());
+        assert!(graph.get_node(&"8").is_some());
+        assert!(graph.get_node(&"9").is_some());
 
         let connected_graph = reduce_to_largest_connected_component(graph);
 
-        assert!(connected_graph.get_node("7").is_none());
-        assert!(connected_graph.get_node("8").is_none());
-        assert!(connected_graph.get_node("9").is_none());
-        assert!(connected_graph.get_node("1").is_some());
-        assert!(connected_graph.get_node("2").is_some());
-        assert!(connected_graph.get_node("3").is_some());
-        assert!(connected_graph.get_node("4").is_some());
-        assert!(connected_graph.get_node("5").is_some());
-        assert!(connected_graph.get_node("6").is_some());
+        assert!(connected_graph.get_node(&"7").is_none());
+        assert!(connected_graph.get_node(&"8").is_none());
+        assert!(connected_graph.get_node(&"9").is_none());
+        assert!(connected_graph.get_node(&"1").is_some());
+        assert!(connected_graph.get_node(&"2").is_some());
+        assert!(connected_graph.get_node(&"3").is_some());
+        assert!(connected_graph.get_node(&"4").is_some());
+        assert!(connected_graph.get_node(&"5").is_some());
+        assert!(connected_graph.get_node(&"6").is_some());
     }
 }
