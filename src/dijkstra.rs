@@ -1,76 +1,25 @@
-use std::collections::{ BinaryHeap, HashMap };
+use std::collections::HashMap;
 use std::hash::Hash;
-use std::cmp::Ordering;
 
-use weighted_graph::Graph;
+use a_star::shortest_path as a_star;
+use a_star::CurrentBest;
+use weighted_graph::{ Graph, Node };
 
 pub fn shortest_path<T>(graph: &Graph<T>,
-                     source: &T,
-                     destination: Option<&T>
-                    ) -> (i64, HashMap<T, CurrentBest<T>>)
-   where T: Clone + Hash + Eq {
-
-    let mut min_heap = BinaryHeap::new();
-    let mut results = HashMap::new();
-
-    let initial = CurrentBest { id: source.clone(), cost: 0, predecessor: source.clone() };
-    results.insert(source.clone(), initial.clone());
-    min_heap.push(initial.clone());
-
-    while let Some(current) = min_heap.pop() {
-        if let Some(target) = destination {
-            if current.id == *target {
-                return (current.cost, results)
-            }
-        }
-
-        if let Some(edges) = graph.get_edges(&current.id) {
-            for edge in edges.iter() {
-                if let Some(node) = graph.get_node(&edge.to_id) {
-                    let node_cost = results.get(&node.id)
-                                           .map_or(i64::max_value(), |node| node.cost);
-                    if current.cost + edge.weight < node_cost {
-                        let hnode = CurrentBest { id: node.id.clone(),
-                                                  cost: current.cost + edge.weight,
-                                                  predecessor: current.id.clone()
-                                                };
-                        min_heap.push(hnode.clone());
-                        results.insert(node.id.clone(), hnode.clone());
-                    }
-                }
-            }
-        }
-    }
-    (0, results)
-}
-
-#[derive(Clone, Eq, PartialEq, Debug)]
-pub struct CurrentBest<T: Clone + Hash + Eq> {
-    pub cost: i64,
-    pub id: T,
-    pub predecessor: T
-}
-
-impl<T> Ord for CurrentBest<T>
-        where T: Clone + Hash + Eq {
-    // flip order so min-heap instead of max-heap
-    fn cmp(&self, other: &CurrentBest<T>) -> Ordering {
-        other.cost.cmp(&self.cost)
-    }
-}
-
-impl<T> PartialOrd for CurrentBest<T>
-        where T: Clone + Hash + Eq {
-    fn partial_cmp(&self, other: &CurrentBest<T>) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
+                        source: &T,
+                        destination: Option<&T>
+                       ) -> (i64, HashMap<T, CurrentBest<T>>)
+    where T: Clone + Hash + Eq {
+        let identity = |_: Option<&Node<T>>, _ :Option<&Node<T>>| 0;
+        a_star(graph, source, destination, identity)
 }
 
 #[cfg(test)]
 mod test {
-    use std::collections::HashMap;
+    use super::shortest_path;
+    use a_star::CurrentBest;
     use weighted_graph::Graph;
-    use super::{ shortest_path, CurrentBest };
+    use std::collections::HashMap;
 
     fn build_graph() ->  Graph<&'static str> {
         let mut graph = Graph::new();
@@ -96,22 +45,6 @@ mod test {
         }
 
         graph
-    }
-
-    #[test]
-    fn orderable_node_ref() {
-        let less = CurrentBest { id: "less", cost: 1, predecessor: "" };
-        let more = CurrentBest { id: "more", cost: 5, predecessor: "" };
-
-        assert!(less > more);
-        assert!(more < less);
-    }
-
-    #[test]
-    fn graph() {
-        let graph = build_graph();
-        assert!(graph.get_node(&"3").is_some());
-        assert!(graph.get_edges(&"3").is_some());
     }
 
     #[test]
