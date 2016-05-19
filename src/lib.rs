@@ -7,5 +7,6 @@ pub mod graph_from_xml;
 pub mod weighted_graph;
 pub mod test_helpers;
 pub mod a_star;
+pub mod a_star_heuristics;
 pub mod dijkstra;
 pub mod connected_component;
