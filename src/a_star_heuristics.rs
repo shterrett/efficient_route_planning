@@ -74,6 +74,7 @@ fn select_landmarks<T>(graph: &Graph<T>, num_landmarks: usize) -> Vec<T>
 #[cfg(test)]
 mod test {
     use std::collections::HashMap;
+    use std::hash::Hash;
     use weighted_graph::{ Graph, Node };
     use road_weights::road_weight;
     use super::{ crow_files,
