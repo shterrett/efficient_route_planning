@@ -2,6 +2,8 @@
 #[macro_use]
 extern crate lazy_static;
 
+extern crate rand;
+
 pub mod road_weights;
 pub mod graph_from_xml;
 pub mod weighted_graph;
