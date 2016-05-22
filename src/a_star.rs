@@ -151,7 +151,6 @@ mod test {
         let (_, naive) = shortest_path(&graph, &"1", Some(&"6"), identity);
         let(_, heuristified) = shortest_path(&graph, &"1", Some(&"6"), heuristic);
 
-        println!("{:?}", heuristified);
         assert_eq!(naive.get(&"4").map(|b| b.cost), Some(5));
         assert_eq!(heuristified.get(&"4"), None);
         assert_eq!(naive.get(&"5").map(|b| b.cost), Some(6));
