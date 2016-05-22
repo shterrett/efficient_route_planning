@@ -25,7 +25,7 @@ pub fn build_landmark_heuristic<T>(graph: &Graph<T>, num_landmarks: usize) -> He
         landmarks(
             build_landmark_distances(
                 graph,
-                &select_landmarks(graph, num_landmarks)))
+                select_landmarks(graph, num_landmarks)))
 }
 
 fn landmarks<T>(landmark_distances: Vec<HashMap<T, i64>>) -> HeuristicFn<T>
@@ -46,7 +46,7 @@ fn landmarks<T>(landmark_distances: Vec<HashMap<T, i64>>) -> HeuristicFn<T>
     })
 }
 
-fn build_landmark_distances<T>(graph: &Graph<T>, landmarks: &Vec<T>)
+fn build_landmark_distances<T>(graph: &Graph<T>, landmarks: Vec<T>)
    -> Vec<HashMap<T, i64>>
    where T: Clone + Hash + Eq {
        landmarks.iter().map(|landmark_id|
@@ -160,7 +160,7 @@ mod test {
 
         let landmark_nodes = vec!["2", "3"];
 
-        let distances = build_landmark_distances(&graph, &landmark_nodes);
+        let distances = build_landmark_distances(&graph, landmark_nodes);
 
         let mut results_2 = HashMap::new();
         let mut results_3 = HashMap::new();
@@ -191,7 +191,7 @@ mod test {
         let landmark_nodes = vec!["2", "3"];
 
         let heuristic = landmarks(
-                            build_landmark_distances(&graph, &landmark_nodes)
+                            build_landmark_distances(&graph, landmark_nodes)
                         );
 
 
