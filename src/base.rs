@@ -4,9 +4,9 @@ use std::cmp::Ordering;
 
 use weighted_graph::{ Graph, Node };
 
-type HeuristicFn<T> = Box<Fn(Option<&Node<T>>, Option<&Node<T>>) -> i64>;
+pub type HeuristicFn<T> = Box<Fn(Option<&Node<T>>, Option<&Node<T>>) -> i64>;
 
-struct Base<T: Clone + Hash + Eq> {
+pub struct Base<T: Clone + Hash + Eq> {
     h: HeuristicFn<T>
 }
 
