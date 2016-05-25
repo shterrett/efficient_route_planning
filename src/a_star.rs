@@ -1,18 +1,16 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 
-use weighted_graph::{ Graph, Node };
-use base::{ Base, CurrentBest };
+use weighted_graph::Graph;
+use base::{ Base, CurrentBest, HeuristicFn };
 
-pub fn shortest_path<'a, T, F>(graph: &Graph<T>,
+pub fn shortest_path<'a, T>(graph: &Graph<T>,
                      source: &T,
                      destination: Option<&T>,
-                     heuristic: F
+                     heuristic: HeuristicFn<'a, T>
                     ) -> (i64, HashMap<T, CurrentBest<T>>)
-   where T: Clone + Hash + Eq,
-         F: 'a + Fn(Option<&Node<T>>, Option<&Node<T>>) -> i64 {
-    let f = Box::new(heuristic);
-    let pathfinder = Base::new(f);
+   where T: Clone + Hash + Eq {
+    let pathfinder = Base::new(heuristic);
     pathfinder.shortest_path(graph, source, destination)
 }
 
@@ -65,8 +63,8 @@ mod test {
             *current.and_then(|node| h.get(&node.id)).unwrap()
         };
 
-        let (_, naive) = shortest_path(&graph, &"1", Some(&"6"), identity);
-        let(_, heuristified) = shortest_path(&graph, &"1", Some(&"6"), heuristic);
+        let (_, naive) = shortest_path(&graph, &"1", Some(&"6"), Box::new(identity));
+        let(_, heuristified) = shortest_path(&graph, &"1", Some(&"6"), Box::new(heuristic));
 
         assert_eq!(naive.get(&"4").map(|b| b.cost), Some(5));
         assert_eq!(heuristified.get(&"4"), None);
