@@ -4,14 +4,14 @@ use std::cmp::Ordering;
 
 use weighted_graph::{ Graph, Node };
 
-pub type HeuristicFn<T> = Box<Fn(Option<&Node<T>>, Option<&Node<T>>) -> i64>;
+pub type HeuristicFn<'a, T> = Box<Fn(Option<&Node<T>>, Option<&Node<T>>) -> i64 + 'a>;
 
-pub struct Base<T: Clone + Hash + Eq> {
-    h: HeuristicFn<T>
+pub struct Base<'a, T: Clone + Hash + Eq> {
+    h: HeuristicFn<'a, T>
 }
 
-impl<T: Clone + Hash + Eq> Base<T> {
-    pub fn new(heuristic: HeuristicFn<T>) -> Self {
+impl<'a, T: Clone + Hash + Eq> Base<'a, T> {
+    pub fn new(heuristic: HeuristicFn<'a, T>) -> Self {
         Base { h: heuristic }
     }
 

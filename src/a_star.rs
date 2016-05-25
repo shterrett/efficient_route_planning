@@ -4,13 +4,13 @@ use std::hash::Hash;
 use weighted_graph::{ Graph, Node };
 use base::{ Base, CurrentBest };
 
-pub fn shortest_path<T, F>(graph: &Graph<T>,
+pub fn shortest_path<'a, T, F>(graph: &Graph<T>,
                      source: &T,
                      destination: Option<&T>,
                      heuristic: F
                     ) -> (i64, HashMap<T, CurrentBest<T>>)
    where T: Clone + Hash + Eq,
-         F: 'static + Fn(Option<&Node<T>>, Option<&Node<T>>) -> i64 {
+         F: 'a + Fn(Option<&Node<T>>, Option<&Node<T>>) -> i64 {
     let f = Box::new(heuristic);
     let pathfinder = Base::new(f);
     pathfinder.shortest_path(graph, source, destination)
