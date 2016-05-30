@@ -1,90 +1,24 @@
-use std::collections::{ BinaryHeap, HashMap };
+use std::collections::HashMap;
 use std::hash::Hash;
-use std::cmp::Ordering;
 
-use weighted_graph::{ Graph, Node };
+use weighted_graph::Graph;
+use pathfinder::{ Pathfinder, CurrentBest, HeuristicFn };
 
-pub fn shortest_path<T, F>(graph: &Graph<T>,
+pub fn shortest_path<'a, T>(graph: &Graph<T>,
                      source: &T,
                      destination: Option<&T>,
-                     heuristic: F
+                     heuristic: HeuristicFn<'a, T>
                     ) -> (i64, HashMap<T, CurrentBest<T>>)
-   where T: Clone + Hash + Eq,
-         F: Fn(Option<&Node<T>>, Option<&Node<T>>) -> i64 {
-
-    let mut min_heap = BinaryHeap::new();
-    let mut results = HashMap::new();
-
-    let initial = CurrentBest { id: source.clone(),
-                                cost: heuristic(graph.get_node(source),
-                                                destination.and_then(|id|
-                                                    graph.get_node(id)
-                                                )
-                                               ),
-                                predecessor: source.clone()
-                              };
-    results.insert(source.clone(), initial.clone());
-    min_heap.push(initial.clone());
-
-    while let Some(current) = min_heap.pop() {
-        if let Some(target) = destination {
-            if current.id == *target {
-                return (current.cost, results)
-            }
-        }
-
-        if let Some(edges) = graph.get_edges(&current.id) {
-            for edge in edges.iter() {
-                if let Some(node) = graph.get_node(&edge.to_id) {
-                    let node_cost = results.get(&node.id)
-                                           .map_or(i64::max_value(), |node| node.cost);
-                    if current.cost + edge.weight < node_cost {
-                        let cost = current.cost +
-                                   edge.weight +
-                                   heuristic(Some(&node),
-                                             destination.and_then(|id| graph.get_node(id))
-                                            );
-                        let hnode = CurrentBest { id: node.id.clone(),
-                                                  cost: cost,
-                                                  predecessor: current.id.clone()
-                                                };
-                        min_heap.push(hnode.clone());
-                        results.insert(node.id.clone(), hnode.clone());
-                    }
-                }
-            }
-        }
-    }
-    (0, results)
-}
-
-#[derive(Clone, Eq, PartialEq, Debug)]
-pub struct CurrentBest<T: Clone + Hash + Eq> {
-    pub cost: i64,
-    pub id: T,
-    pub predecessor: T
-}
-
-impl<T> Ord for CurrentBest<T>
-        where T: Clone + Hash + Eq {
-    // flip order so min-heap instead of max-heap
-    fn cmp(&self, other: &CurrentBest<T>) -> Ordering {
-        other.cost.cmp(&self.cost)
-    }
-}
-
-impl<T> PartialOrd for CurrentBest<T>
-        where T: Clone + Hash + Eq {
-    fn partial_cmp(&self, other: &CurrentBest<T>) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
+   where T: Clone + Hash + Eq {
+    let pathfinder = Pathfinder::new(heuristic);
+    pathfinder.shortest_path(graph, source, destination)
 }
 
 #[cfg(test)]
 mod test {
     use std::collections::HashMap;
     use weighted_graph::{ Graph, Node };
-    use super::{ shortest_path, CurrentBest };
+    use super::shortest_path;
 
     fn build_graph() ->  Graph<&'static str> {
         let mut graph = Graph::new();
@@ -114,25 +48,6 @@ mod test {
     }
 
     #[test]
-    fn orderable_node_ref() {
-        let less = CurrentBest { id: "less", cost: 1, predecessor: "" };
-        let more = CurrentBest { id: "more", cost: 5, predecessor: "" };
-
-        assert!(less > more);
-        assert!(more < less);
-    }
-
-    #[test]
-    fn reduction_to_dijkstra() {
-        let graph = build_graph();
-
-        let identity = |_: Option<&Node<&str>>, _: Option<&Node<&str>>| 0;
-
-        let (cost, _) = shortest_path(&graph, &"1", Some(&"6"), identity);
-        assert_eq!(cost, 7);
-    }
-
-    #[test]
     fn uses_heuristic_short_circuit() {
         let graph = build_graph();
         let identity = |_: Option<&Node<&str>>, _: Option<&Node<&str>>| 0;
@@ -144,12 +59,12 @@ mod test {
         h.insert("5", 3);
         h.insert("6", 0);
 
-        let heuristic = |current: Option<&Node<&str>>, _: Option<&Node<&str>>| {
+        let heuristic = move |current: Option<&Node<&str>>, _: Option<&Node<&str>>| {
             *current.and_then(|node| h.get(&node.id)).unwrap()
         };
 
-        let (_, naive) = shortest_path(&graph, &"1", Some(&"6"), identity);
-        let(_, heuristified) = shortest_path(&graph, &"1", Some(&"6"), heuristic);
+        let (_, naive) = shortest_path(&graph, &"1", Some(&"6"), Box::new(identity));
+        let(_, heuristified) = shortest_path(&graph, &"1", Some(&"6"), Box::new(heuristic));
 
         assert_eq!(naive.get(&"4").map(|b| b.cost), Some(5));
         assert_eq!(heuristified.get(&"4"), None);

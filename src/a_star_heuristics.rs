@@ -5,11 +5,10 @@ use rand::{thread_rng, Rng};
 use weighted_graph::{ Graph, Node };
 use road_weights::road_weight;
 use dijkstra::shortest_path;
+use pathfinder::HeuristicFn;
 
-pub type HeuristicFn<T> = Box<Fn(Option<&Node<T>>, Option<&Node<T>>) -> i64>;
-
-pub fn crow_files<T>() -> HeuristicFn<T>
-       where T: Clone + Hash + Eq {
+pub fn crow_files<'a, T>() -> HeuristicFn<'a, T>
+       where T: 'a + Clone + Hash + Eq {
     Box::new(|current: Option<&Node<T>>, target: Option<&Node<T>>| {
         match (current, target) {
             (Some(cnode), Some(tnode)) => {
@@ -20,16 +19,16 @@ pub fn crow_files<T>() -> HeuristicFn<T>
     })
 }
 
-pub fn build_landmark_heuristic<T>(graph: &Graph<T>, num_landmarks: usize) -> HeuristicFn<T>
-    where T: 'static + Clone + Hash + Eq {
+pub fn build_landmark_heuristic<'a, T>(graph: &Graph<T>, num_landmarks: usize) -> HeuristicFn<'a, T>
+    where T: 'a + Clone + Hash + Eq {
         landmarks(
             build_landmark_distances(
                 graph,
                 select_landmarks(graph, num_landmarks)))
 }
 
-fn landmarks<T>(landmark_distances: Vec<HashMap<T, i64>>) -> HeuristicFn<T>
-       where T: 'static + Clone + Hash + Eq {
+fn landmarks<'a, T>(landmark_distances: Vec<HashMap<T, i64>>) -> HeuristicFn<'a, T>
+       where T: 'a + Clone + Hash + Eq {
     Box::new(move |current: Option<&Node<T>>, target: Option<&Node<T>>| {
         match (current, target) {
             (Some(c_node), Some(t_node)) => {
