@@ -13,3 +13,4 @@ pub mod a_star;
 pub mod a_star_heuristics;
 pub mod dijkstra;
 pub mod connected_component;
+pub mod arc_flags;

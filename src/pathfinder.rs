@@ -46,24 +46,22 @@ impl<'a, T: Clone + Hash + Eq> Pathfinder<'a, T> {
                 }
             }
 
-            if let Some(edges) = graph.get_edges(&current.id) {
-                for edge in edges.iter() {
-                    if let Some(node) = graph.get_node(&edge.to_id) {
-                        let node_cost = results.get(&node.id)
-                                            .map_or(i64::max_value(), |node| node.cost);
-                        if current.cost + edge.weight < node_cost {
-                            let cost = current.cost +
-                                    edge.weight +
-                                    self.heuristic(Some(&node),
-                                                   destination.and_then(|id| graph.get_node(id))
-                                                  );
-                            let hnode = CurrentBest { id: node.id.clone(),
-                                                      cost: cost,
-                                                      predecessor: current.id.clone()
-                                                    };
-                            min_heap.push(hnode.clone());
-                            results.insert(node.id.clone(), hnode.clone());
-                        }
+            for edge in graph.get_edges(&current.id).iter() {
+                if let Some(node) = graph.get_node(&edge.to_id) {
+                    let node_cost = results.get(&node.id)
+                                        .map_or(i64::max_value(), |node| node.cost);
+                    if current.cost + edge.weight < node_cost {
+                        let cost = current.cost +
+                                edge.weight +
+                                self.heuristic(Some(&node),
+                                                destination.and_then(|id| graph.get_node(id))
+                                                );
+                        let hnode = CurrentBest { id: node.id.clone(),
+                                                    cost: cost,
+                                                    predecessor: current.id.clone()
+                                                };
+                        min_heap.push(hnode.clone());
+                        results.insert(node.id.clone(), hnode.clone());
                     }
                 }
             }

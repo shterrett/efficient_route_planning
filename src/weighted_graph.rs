@@ -20,7 +20,8 @@ pub struct Edge<T: Clone + Hash + Eq> {
     pub id: T,
     pub from_id: T,
     pub to_id: T,
-    pub weight: i64
+    pub weight: i64,
+    pub arc_flag: bool
 }
 
 impl<T: Clone + Hash + Eq> Graph<T> {
@@ -66,17 +67,25 @@ impl<T: Clone + Hash + Eq> Graph<T> {
                 Some(Edge { id: id.clone(),
                             from_id: from_id.clone(),
                             to_id: to_id.clone(),
-                            weight: weight
+                            weight: weight,
+                            arc_flag: false
                           })
             } else {
                 None
             }
     }
 
-    pub fn get_edges<S>(&self, node_id: &S) -> Option<&Vec<Edge<T>>>
+    pub fn get_edges<'a, S>(&'a self, node_id: &S) -> &[Edge<T>]
            where T: Borrow<S>,
                  S: Hash + Eq {
-        self.edges.get(node_id)
+        self.edges.get(node_id).map(Vec::borrow).unwrap_or(&[])
+    }
+
+    pub fn get_mut_edge(&mut self, from_node_id: &T, to_node_id: &T) -> Option<&mut Edge<T>>
+       where T: Clone + Hash + Eq {
+        self.edges.get_mut(from_node_id).and_then(|edges|
+            edges.iter_mut().find(|edge| edge.to_id == *to_node_id)
+        )
     }
 }
 
@@ -135,22 +144,25 @@ mod test {
         let edges_n2 = graph.get_edges(&"n2");
         let edges_n3 = graph.get_edges(&"n3");
 
-        assert_eq!(edges_n1, None);
-        assert_eq!(edges_n2, Some(&vec![Edge { id: "e1",
-                                               from_id: "n2",
-                                               to_id: "n1",
-                                               weight: 13
-                                             },
-                                        Edge { id: "e3",
-                                               from_id: "n2",
-                                               to_id: "n3",
-                                               weight: 5
-                                             }]));
-        assert_eq!(edges_n3, Some(&vec![Edge { id: "e2",
-                                               from_id: "n3",
-                                               to_id: "n2",
-                                               weight: 5
-                                             }]));
+        assert_eq!(edges_n1, &[]);
+        assert_eq!(edges_n2, &[Edge { id: "e1",
+                                      from_id: "n2",
+                                      to_id: "n1",
+                                      weight: 13,
+                                      arc_flag: false
+                                    },
+                               Edge { id: "e3",
+                                      from_id: "n2",
+                                      to_id: "n3",
+                                      weight: 5,
+                                      arc_flag: false
+                                    }]);
+        assert_eq!(edges_n3, &[Edge { id: "e2",
+                                      from_id: "n3",
+                                      to_id: "n2",
+                                      weight: 5,
+                                      arc_flag: false
+                                    }]);
     }
 
     #[test]
@@ -172,5 +184,30 @@ mod test {
                          .collect::<HashSet<&str>>();
 
         assert_eq!(nodes, expected_node_ids);
+    }
+
+    #[test]
+    fn edit_edge() {
+        let mut graph = Graph::new();
+
+        graph.add_node("n1", 0.0, 12.0);
+        graph.add_node("n2", 5.0, 0.0);
+        graph.add_node("n3", 2.0, 4.0);
+
+        graph.add_edge("e1", "n2", "n1", 13);
+        graph.add_edge("e2", "n3", "n2", 5);
+        graph.add_edge("e3", "n2", "n3", 5);
+
+        if let Some(mut edge) = graph.get_mut_edge(&"n2", &"n3") {
+            edge.arc_flag = true;
+        }
+
+        for edge in graph.get_edges(&"n2") {
+            if edge.to_id == "n3" {
+                assert!(edge.arc_flag);
+            } else {
+                assert!(!edge.arc_flag);
+            }
+        }
     }
 }

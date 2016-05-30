@@ -61,13 +61,11 @@ fn add_node<T>(old_graph: &Graph<T>, mut new_graph: &mut Graph<T>, id: &T)
 
 fn add_edges<T>(old_graph: &Graph<T>, mut new_graph: &mut Graph<T>, id: &T)
    where T: Clone + Hash + Eq {
-    if let Some(edges) = old_graph.get_edges(id) {
-        for edge in edges {
-            new_graph.add_edge(edge.id.clone(),
-                                id.clone(),
-                                edge.to_id.clone(),
-                                edge.weight);
-        }
+    for edge in old_graph.get_edges(id) {
+        new_graph.add_edge(edge.id.clone(),
+                            id.clone(),
+                            edge.to_id.clone(),
+                            edge.weight);
     }
 }
 
@@ -179,17 +177,13 @@ mod test {
         add_edges(&graph, &mut new_graph, &"9");
 
         let nodes_from_seven: Vec<&str> = new_graph.get_edges(&node_id)
-                                                    .map(|edges|
-                                                        edges.iter()
-                                                            .map(|edge| edge.to_id)
-                                                            .collect())
-                                                    .unwrap();
+                                                   .iter()
+                                                   .map(|edge| edge.to_id)
+                                                   .collect();
         let nodes_from_nine: Vec<&str> = new_graph.get_edges(&"9")
-                                                   .map(|edges|
-                                                        edges.iter()
-                                                             .map(|edge| edge.to_id)
-                                                             .collect())
-                                                   .unwrap();
+                                                  .iter()
+                                                  .map(|edge| edge.to_id)
+                                                  .collect();
 
         assert_eq!(nodes_from_seven, vec!["9"]);
         assert_eq!(nodes_from_nine, vec!["7"]);

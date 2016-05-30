@@ -143,34 +143,29 @@ mod test {
              ("261728686".to_string(), 2),
              ("298884272".to_string(), 2)]
             .iter().all(|t|
-                graph.get_edges(&t.0).is_some() &&
-                  graph.get_edges(&t.0).unwrap().len() == t.1
+                graph.get_edges(&t.0).len() == t.1
             )
     }
 
     fn edge_spot_check(graph: &Graph<String>) -> bool {
-        match graph.get_edges(&"298884289".to_string()) {
-            Some(edges) => {
-                edges.len() == 2 &&
-                edges.iter().any(|edge|
-                    edge.from_id == "298884289" &&
-                    edge.to_id == "292403538" &&
-                        (edge.weight ==
-                            road_weight(graph.get_node(&"298884289".to_string()).unwrap(),
-                                        graph.get_node(&"292403538".to_string()).unwrap(),
-                                        "unclassified").unwrap())
-                ) &&
-                edges.iter().any(|edge|
-                    edge.from_id == "298884289" &&
-                    edge.to_id == "261728686" &&
-                        (edge.weight ==
-                            road_weight(graph.get_node(&"298884289".to_string()).unwrap(),
-                                        graph.get_node(&"261728686".to_string()).unwrap(),
-                                        "unclassified").unwrap())
-                )
-            }
-            None => false
-        }
+        let edges = graph.get_edges(&"298884289".to_string());
+        edges.len() == 2 &&
+        edges.iter().any(|edge|
+            edge.from_id == "298884289" &&
+            edge.to_id == "292403538" &&
+                (edge.weight ==
+                    road_weight(graph.get_node(&"298884289".to_string()).unwrap(),
+                                graph.get_node(&"292403538".to_string()).unwrap(),
+                                "unclassified").unwrap())
+        ) &&
+        edges.iter().any(|edge|
+            edge.from_id == "298884289" &&
+            edge.to_id == "261728686" &&
+                (edge.weight ==
+                    road_weight(graph.get_node(&"298884289".to_string()).unwrap(),
+                                graph.get_node(&"261728686".to_string()).unwrap(),
+                                "unclassified").unwrap())
+        )
     }
 
     #[test]
