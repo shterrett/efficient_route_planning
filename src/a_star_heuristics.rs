@@ -5,7 +5,7 @@ use rand::{thread_rng, Rng};
 use weighted_graph::{ Graph, Node };
 use road_weights::road_weight;
 use dijkstra::shortest_path;
-use base::HeuristicFn;
+use pathfinder::HeuristicFn;
 
 pub fn crow_files<'a, T>() -> HeuristicFn<'a, T>
        where T: 'a + Clone + Hash + Eq {

@@ -6,13 +6,13 @@ use weighted_graph::{ Graph, Node };
 
 pub type HeuristicFn<'a, T> = Box<Fn(Option<&Node<T>>, Option<&Node<T>>) -> i64 + 'a>;
 
-pub struct Base<'a, T: Clone + Hash + Eq> {
+pub struct Pathfinder<'a, T: Clone + Hash + Eq> {
     h: HeuristicFn<'a, T>
 }
 
-impl<'a, T: Clone + Hash + Eq> Base<'a, T> {
+impl<'a, T: Clone + Hash + Eq> Pathfinder<'a, T> {
     pub fn new(heuristic: HeuristicFn<'a, T>) -> Self {
-        Base { h: heuristic }
+        Pathfinder { h: heuristic }
     }
 
     fn heuristic(&self, from: Option<&Node<T>>, to: Option<&Node<T>>) -> i64 {
@@ -98,7 +98,7 @@ impl<T> PartialOrd for CurrentBest<T>
 mod test {
     use std::collections::HashMap;
     use weighted_graph::{ Graph, Node };
-    use super::{ Base, CurrentBest };
+    use super::{ Pathfinder, CurrentBest };
 
     fn build_graph() ->  Graph<&'static str> {
         let mut graph = Graph::new();
@@ -142,7 +142,7 @@ mod test {
 
         let identity = |_: Option<&Node<&str>>, _: Option<&Node<&str>>| 0;
 
-        let pathfinder = Base::new(Box::new(identity));
+        let pathfinder = Pathfinder::new(Box::new(identity));
 
         let (cost, _): (i64, HashMap<&str, CurrentBest<&str>>) = pathfinder.shortest_path(&graph, &"1", Some(&"6"));
         assert_eq!(cost, 7);

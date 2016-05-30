@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::hash::Hash;
 
 use weighted_graph::Graph;
-use base::{ Base, CurrentBest, HeuristicFn };
+use pathfinder::{ Pathfinder, CurrentBest, HeuristicFn };
 
 pub fn shortest_path<'a, T>(graph: &Graph<T>,
                      source: &T,
@@ -10,7 +10,7 @@ pub fn shortest_path<'a, T>(graph: &Graph<T>,
                      heuristic: HeuristicFn<'a, T>
                     ) -> (i64, HashMap<T, CurrentBest<T>>)
    where T: Clone + Hash + Eq {
-    let pathfinder = Base::new(heuristic);
+    let pathfinder = Pathfinder::new(heuristic);
     pathfinder.shortest_path(graph, source, destination)
 }
 

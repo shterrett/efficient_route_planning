@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 
-use base::{ Base, CurrentBest };
+use pathfinder::{ Pathfinder, CurrentBest };
 use weighted_graph::{ Graph, Node };
 
 pub fn shortest_path<T>(graph: &Graph<T>,
@@ -10,14 +10,14 @@ pub fn shortest_path<T>(graph: &Graph<T>,
                        ) -> (i64, HashMap<T, CurrentBest<T>>)
     where T: Clone + Hash + Eq {
         let identity = |_: Option<&Node<T>>, _ :Option<&Node<T>>| 0;
-        let pathfinder = Base::new(Box::new(identity));
+        let pathfinder = Pathfinder::new(Box::new(identity));
         pathfinder.shortest_path(graph, source, destination)
 }
 
 #[cfg(test)]
 mod test {
     use super::shortest_path;
-    use base::CurrentBest;
+    use pathfinder::CurrentBest;
     use weighted_graph::Graph;
     use std::collections::HashMap;
 
