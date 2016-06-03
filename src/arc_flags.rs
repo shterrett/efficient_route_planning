@@ -1,7 +1,24 @@
+use std::collections::HashMap;
 use std::hash::Hash;
 use weighted_graph::{ Graph, Node };
-use dijkstra::shortest_path;
-use pathfinder::CurrentBest;
+use dijkstra::shortest_path as dijkstra;
+use pathfinder::{ CurrentBest, Pathfinder, EdgeIterator };
+
+pub fn shortest_path<'a, T>(graph: &'a Graph<T>,
+                        source: &T,
+                        destination: Option<&T>
+                       ) -> (i64, HashMap<T, CurrentBest<T>>)
+    where T: Clone + Hash + Eq {
+    let identity = |_: Option<&Node<T>>, _ :Option<&Node<T>>| 0;
+    let edge_iterator = |g: &'a Graph<T>, node_id: &T| ->
+                        EdgeIterator<'a, T> {
+        Box::new(g.get_edges(node_id).iter().filter(|edge| edge.arc_flag))
+    };
+    let pathfinder = Pathfinder::new(Box::new(identity),
+                                     Box::new(edge_iterator)
+                                    );
+    pathfinder.shortest_path(graph, source, destination)
+}
 
 pub struct Rect {
     x_max: f64,
@@ -41,7 +58,7 @@ fn inbound_paths<T>(graph: &Graph<T>, node_ids: &[T], region: &Rect) -> Vec<Curr
     node_ids.iter()
             .filter(|node_id| boundary_node(graph, region, *node_id))
             .flat_map(|node_id|
-                shortest_path(graph, &node_id, None).1.into_iter()
+                dijkstra(graph, &node_id, None).1.into_iter()
                     .map(|(_, v)| v)
                 ).collect()
 }
@@ -74,8 +91,11 @@ fn boundary_node<T>(graph: &Graph<T>, rect: &Rect, node_id: &T) -> bool
 mod test {
     use std::collections::HashSet;
     use weighted_graph::{ Graph, Node };
-    use dijkstra::shortest_path;
-    use super::{ Rect, boundary_node, assign_arc_flags };
+    use super::{ Rect,
+                 boundary_node,
+                 assign_arc_flags,
+                 shortest_path
+               };
 
     fn build_graph() -> Graph<&'static str> {
         let mut graph = Graph::new();
@@ -90,8 +110,8 @@ mod test {
                          ("ar", "5", "1", 1),
                          ("bf", "5", "6", 1),
                          ("br", "6", "5", 1),
-                         ("cf", "2", "6", 1),
-                         ("cr", "6", "2", 1),
+                         ("cf", "2", "6", 4),
+                         ("cr", "6", "2", 4),
                          ("df", "2", "4", 1),
                          ("dr", "4", "2", 1),
                          ("ef", "3", "4", 1),
@@ -139,11 +159,7 @@ mod test {
                             y_max: 3.5
                           };
 
-        assign_arc_flags(&mut graph, Rect { x_min: 1.5,
-                                            x_max: 3.5,
-                                            y_min: 1.5,
-                                            y_max: 3.5
-                                          });
+        assign_arc_flags(&mut graph, region);
 
         let flagged_arcs: HashSet<&str> = vec!["af",
                                                "bf",
@@ -152,21 +168,8 @@ mod test {
                                                "ef",
                                                "er"].into_iter().collect();
 
-        let results = shortest_path(&graph, &"4", None);
-        let internal = graph.all_nodes()
-                            .into_iter()
-                            .filter(|node_ref| region.contains(node_ref))
-                            .map(|node_ref| node_ref.id.clone())
-                            .collect::<Vec<&str>>();
-        println!("{:?}", results);
-        println!("\n\n\n");
-        println!("{:?}", internal);
-        println!("\n\n\n");
-        println!("{:?}", graph);
-        println!("\n\n\n");
         for node in graph.all_nodes() {
             for edge in graph.get_edges(&node.id) {
-                println!("{:?}", edge);
                 if flagged_arcs.contains(&edge.id) {
                     assert!(edge.arc_flag);
                 } else {
@@ -174,5 +177,23 @@ mod test {
                 }
             }
         }
+    }
+
+    #[test]
+    fn shortest_path_uses_arc_flags() {
+        let mut graph = build_graph();
+
+        let region = Rect { x_min: 1.5,
+                            x_max: 3.5,
+                            y_min: 1.5,
+                            y_max: 3.5
+                          };
+
+        assign_arc_flags(&mut graph, region);
+
+        let (cost, results) = shortest_path(&graph, &"6", Some(&"4"));
+
+        assert!(!results.values().any(|r| r.id == "5"));
+        assert_eq!(cost, 5)
     }
 }

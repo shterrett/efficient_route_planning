@@ -1,17 +1,23 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 
-use pathfinder::{ Pathfinder, CurrentBest };
+use pathfinder::{ Pathfinder, CurrentBest, EdgeIterator };
 use weighted_graph::{ Graph, Node };
 
-pub fn shortest_path<T>(graph: &Graph<T>,
-                        source: &T,
-                        destination: Option<&T>
-                       ) -> (i64, HashMap<T, CurrentBest<T>>)
+pub fn shortest_path<'a, T>(graph: &'a Graph<T>,
+                            source: &T,
+                            destination: Option<&T>
+                           ) -> (i64, HashMap<T, CurrentBest<T>>)
     where T: Clone + Hash + Eq {
-        let identity = |_: Option<&Node<T>>, _ :Option<&Node<T>>| 0;
-        let pathfinder = Pathfinder::new(Box::new(identity));
-        pathfinder.shortest_path(graph, source, destination)
+    let identity = |_: Option<&Node<T>>, _ :Option<&Node<T>>| 0;
+    let edge_iterator = |g: &'a Graph<T>, node_id: &T| ->
+                        EdgeIterator<'a, T> {
+        Box::new(g.get_edges(node_id).iter().filter(|_| true))
+    };
+    let pathfinder = Pathfinder::new(Box::new(identity),
+                                     Box::new(edge_iterator)
+                                    );
+    pathfinder.shortest_path(graph, source, destination)
 }
 
 #[cfg(test)]
