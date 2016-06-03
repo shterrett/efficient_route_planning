@@ -1,26 +1,38 @@
 use std::collections::{ BinaryHeap, HashMap };
 use std::hash::Hash;
+use std::iter::Iterator;
 use std::cmp::Ordering;
 
-use weighted_graph::{ Graph, Node };
+use weighted_graph::{ Graph, Node, Edge };
 
 pub type HeuristicFn<'a, T> = Box<Fn(Option<&Node<T>>, Option<&Node<T>>) -> i64 + 'a>;
+pub type EdgeIterator<'a, T> = Box<Iterator<Item=&'a Edge<T>> + 'a>;
+pub type EdgeIteratorFn<'a, T> = Box<Fn(&'a Graph<T>, &T) ->
+                                     EdgeIterator<'a, T>>;
 
-pub struct Pathfinder<'a, T: Clone + Hash + Eq> {
-    h: HeuristicFn<'a, T>
+pub struct Pathfinder<'a, T: Clone + Hash + Eq + 'a> {
+    h: HeuristicFn<'a, T>,
+    eit: EdgeIteratorFn<'a, T>
 }
 
 impl<'a, T: Clone + Hash + Eq> Pathfinder<'a, T> {
-    pub fn new(heuristic: HeuristicFn<'a, T>) -> Self {
-        Pathfinder { h: heuristic }
+    pub fn new(heuristic: HeuristicFn<'a, T>,
+               edge_iterator: EdgeIteratorFn<'a, T>) -> Self {
+        Pathfinder { h: heuristic,
+                     eit: edge_iterator
+                   }
     }
 
     fn heuristic(&self, from: Option<&Node<T>>, to: Option<&Node<T>>) -> i64 {
         (self.h)(from, to)
     }
 
+    fn edges(&self, graph: &'a Graph<T>, node_id: &T) -> EdgeIterator<'a, T> {
+        (self.eit)(graph, node_id)
+    }
+
     pub fn shortest_path(&self,
-                         graph: &Graph<T>,
+                         graph: &'a Graph<T>,
                          source: &T,
                          destination: Option<&T>
                         ) -> (i64, HashMap<T, CurrentBest<T>>) {
@@ -46,7 +58,7 @@ impl<'a, T: Clone + Hash + Eq> Pathfinder<'a, T> {
                 }
             }
 
-            for edge in graph.get_edges(&current.id).iter() {
+            for edge in self.edges(graph, &current.id) {
                 if let Some(node) = graph.get_node(&edge.to_id) {
                     let node_cost = results.get(&node.id)
                                         .map_or(i64::max_value(), |node| node.cost);
@@ -94,9 +106,11 @@ impl<T> PartialOrd for CurrentBest<T>
 
 #[cfg(test)]
 mod test {
+    use std::hash::Hash;
     use std::collections::HashMap;
+    use std::iter::Iterator;
     use weighted_graph::{ Graph, Node };
-    use super::{ Pathfinder, CurrentBest };
+    use super::{ Pathfinder, CurrentBest, EdgeIterator };
 
     fn build_graph() ->  Graph<&'static str> {
         let mut graph = Graph::new();
@@ -134,15 +148,26 @@ mod test {
         assert!(more < less);
     }
 
+    fn find_shortest_path<'a, T>(graph: &'a Graph<T>,
+                                 source: &T,
+                                 destination: Option<&T>
+                                ) -> (i64, HashMap<T, CurrentBest<T>>)
+        where T: Clone + Hash + Eq {
+        let identity = |_: Option<&Node<T>>, _ :Option<&Node<T>>| 0;
+        let edge_iterator = |g: &'a Graph<T>, node_id: &T| -> EdgeIterator<'a, T> {
+            Box::new(g.get_edges(node_id).iter().filter(|_| true))
+        };
+        let pathfinder = Pathfinder::new(Box::new(identity),
+                                        Box::new(edge_iterator)
+                                        );
+        pathfinder.shortest_path(graph, source, destination)
+    }
+
     #[test]
     fn reduction_to_dijkstra() {
-        let graph = build_graph();
+        let graph: Graph<&str> = build_graph();
 
-        let identity = |_: Option<&Node<&str>>, _: Option<&Node<&str>>| 0;
-
-        let pathfinder = Pathfinder::new(Box::new(identity));
-
-        let (cost, _): (i64, HashMap<&str, CurrentBest<&str>>) = pathfinder.shortest_path(&graph, &"1", Some(&"6"));
+        let (cost, _): (i64, HashMap<&str, CurrentBest<&str>>) = find_shortest_path(&graph, &"1", Some(&"6"));
         assert_eq!(cost, 7);
     }
 }
