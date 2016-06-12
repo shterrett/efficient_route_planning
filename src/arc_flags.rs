@@ -14,8 +14,10 @@ pub fn shortest_path<'a, T>(graph: &'a Graph<T>,
                         EdgeIterator<'a, T> {
         Box::new(g.get_edges(node_id).iter().filter(|edge| edge.arc_flag))
     };
+    let terminator = |_: &CurrentBest<T>, _: &HashMap<T, CurrentBest<T>>| false;
     let pathfinder = Pathfinder::new(Box::new(identity),
-                                     Box::new(edge_iterator)
+                                     Box::new(edge_iterator),
+                                     Box::new(terminator)
                                     );
     pathfinder.shortest_path(graph, source, destination)
 }

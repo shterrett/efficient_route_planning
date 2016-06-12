@@ -9,17 +9,21 @@ pub type HeuristicFn<'a, T> = Box<Fn(Option<&Node<T>>, Option<&Node<T>>) -> i64 
 pub type EdgeIterator<'a, T> = Box<Iterator<Item=&'a Edge<T>> + 'a>;
 pub type EdgeIteratorFn<'a, T> = Box<Fn(&'a Graph<T>, &T) ->
                                      EdgeIterator<'a, T>>;
+pub type TerminatorFn<'a, T> = Box<Fn(&CurrentBest<T>, &HashMap<T, CurrentBest<T>>) -> bool>;
 
 pub struct Pathfinder<'a, T: Clone + Hash + Eq + 'a> {
     h: HeuristicFn<'a, T>,
-    eit: EdgeIteratorFn<'a, T>
+    eit: EdgeIteratorFn<'a, T>,
+    t: TerminatorFn<'a, T>
 }
 
 impl<'a, T: Clone + Hash + Eq> Pathfinder<'a, T> {
     pub fn new(heuristic: HeuristicFn<'a, T>,
-               edge_iterator: EdgeIteratorFn<'a, T>) -> Self {
+               edge_iterator: EdgeIteratorFn<'a, T>,
+               terminator: TerminatorFn<'a, T>) -> Self {
         Pathfinder { h: heuristic,
-                     eit: edge_iterator
+                     eit: edge_iterator,
+                     t: terminator
                    }
     }
 
@@ -29,6 +33,10 @@ impl<'a, T: Clone + Hash + Eq> Pathfinder<'a, T> {
 
     fn edges(&self, graph: &'a Graph<T>, node_id: &T) -> EdgeIterator<'a, T> {
         (self.eit)(graph, node_id)
+    }
+
+    fn early_termination(&self, current: &CurrentBest<T>, results: &HashMap<T, CurrentBest<T>>) -> bool {
+        (self.t)(current, results)
     }
 
     pub fn shortest_path(&self,
@@ -57,6 +65,9 @@ impl<'a, T: Clone + Hash + Eq> Pathfinder<'a, T> {
                     return (current.cost, results)
                 }
             }
+            if self.early_termination(&current, &results) {
+                return (current.cost, results)
+            }
 
             for edge in self.edges(graph, &current.id) {
                 if let Some(node) = graph.get_node(&edge.to_id) {
@@ -69,8 +80,8 @@ impl<'a, T: Clone + Hash + Eq> Pathfinder<'a, T> {
                                                 destination.and_then(|id| graph.get_node(id))
                                                 );
                         let hnode = CurrentBest { id: node.id.clone(),
-                                                    cost: cost,
-                                                    predecessor: current.id.clone()
+                                                  cost: cost,
+                                                  predecessor: current.id.clone()
                                                 };
                         min_heap.push(hnode.clone());
                         results.insert(node.id.clone(), hnode.clone());
@@ -157,8 +168,10 @@ mod test {
         let edge_iterator = |g: &'a Graph<T>, node_id: &T| -> EdgeIterator<'a, T> {
             Box::new(g.get_edges(node_id).iter().filter(|_| true))
         };
+        let terminator = |_: &CurrentBest<T>, _: &HashMap<T, CurrentBest<T>>| false;
         let pathfinder = Pathfinder::new(Box::new(identity),
-                                        Box::new(edge_iterator)
+                                         Box::new(edge_iterator),
+                                         Box::new(terminator)
                                         );
         pathfinder.shortest_path(graph, source, destination)
     }
