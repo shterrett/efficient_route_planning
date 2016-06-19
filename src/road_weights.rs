@@ -1,7 +1,6 @@
 use std::f64;
 use std::collections::HashMap;
-use std::hash::Hash;
-use weighted_graph::Node;
+use weighted_graph::{ GraphKey, Node };
 
 lazy_static! {
     pub static ref ROAD_TYPE_SPEED: HashMap<&'static str, i32> = {
@@ -27,7 +26,7 @@ lazy_static! {
 }
 
 pub fn road_weight<T>(from: &Node<T>, to: &Node<T>, road_type: &str) -> Option<i64>
-   where T: Clone + Hash + Eq {
+   where T: GraphKey {
     ROAD_TYPE_SPEED.get(road_type).map(|speed|
        ((haversine(from.x, from.y, to.x, to.y) / *speed as f64) * 3600.0) as i64
     )

@@ -1,22 +1,27 @@
+use std::fmt::Debug;
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::borrow::Borrow;
 
+pub trait GraphKey : Clone + Hash + Eq + Debug {}
+impl GraphKey for String {}
+impl GraphKey for &'static str {}
+
 #[derive(Debug)]
-pub struct Graph<T: Clone + Hash + Eq> {
+pub struct Graph<T: GraphKey> {
     nodes: HashMap<T, Node<T>>,
     edges: HashMap<T, Vec<Edge<T>>>
 }
 
 #[derive(PartialEq, Debug)]
-pub struct Node<T: Clone + Hash + Eq> {
+pub struct Node<T: GraphKey> {
     pub id: T,
     pub x: f64,
     pub y: f64
 }
 
 #[derive(PartialEq, Debug)]
-pub struct Edge<T: Clone + Hash + Eq> {
+pub struct Edge<T: GraphKey> {
     pub id: T,
     pub from_id: T,
     pub to_id: T,
@@ -24,7 +29,7 @@ pub struct Edge<T: Clone + Hash + Eq> {
     pub arc_flag: bool
 }
 
-impl<T: Clone + Hash + Eq> Graph<T> {
+impl<T: GraphKey> Graph<T> {
     pub fn new() -> Self {
         Graph {
             edges: HashMap::new(),
@@ -48,7 +53,7 @@ impl<T: Clone + Hash + Eq> Graph<T> {
     }
 
     pub fn add_edge(&mut self, id: T, from_id: T, to_id: T, weight: i64)
-           where T: Clone + Hash + Eq {
+           where T: GraphKey {
         let edge = self.build_edge(&id, &from_id, &to_id, weight);
         match edge {
             Some(e) => {
@@ -60,7 +65,7 @@ impl<T: Clone + Hash + Eq> Graph<T> {
     }
 
     fn build_edge(&self, id: &T, from_id: &T, to_id: &T, weight: i64) -> Option<Edge<T>>
-       where T: Clone + Hash + Eq {
+       where T: GraphKey {
         let from = self.get_node(&from_id);
         let to = self.get_node(&to_id);
             if from.is_some() && to.is_some() {
@@ -82,7 +87,7 @@ impl<T: Clone + Hash + Eq> Graph<T> {
     }
 
     pub fn get_mut_edge(&mut self, from_node_id: &T, to_node_id: &T) -> Option<&mut Edge<T>>
-       where T: Clone + Hash + Eq {
+       where T: GraphKey {
         self.edges.get_mut(from_node_id).and_then(|edges|
             edges.iter_mut().find(|edge| edge.to_id == *to_node_id)
         )

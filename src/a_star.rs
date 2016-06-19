@@ -1,7 +1,6 @@
 use std::collections::HashMap;
-use std::hash::Hash;
 
-use weighted_graph::Graph;
+use weighted_graph::{ GraphKey, Graph };
 use pathfinder::{ Pathfinder, CurrentBest, HeuristicFn, EdgeIterator };
 
 pub fn shortest_path<'a, T>(graph: &'a Graph<T>,
@@ -9,7 +8,7 @@ pub fn shortest_path<'a, T>(graph: &'a Graph<T>,
                             destination: Option<&T>,
                             heuristic: HeuristicFn<'a, T>
                            ) -> (i64, HashMap<T, CurrentBest<T>>)
-   where T: Clone + Hash + Eq {
+   where T: GraphKey {
     let edge_iterator = |g: &'a Graph<T>, node_id: &T| ->
                         EdgeIterator<'a, T> {
         Box::new(g.get_edges(node_id).iter().filter(|_| true))
@@ -58,7 +57,7 @@ mod test {
     #[test]
     fn uses_heuristic_short_circuit() {
         let graph = build_graph();
-        let identity = |_: Option<&Node<&str>>, _: Option<&Node<&str>>| 0;
+        let identity = |_: Option<&Node<&'static str>>, _: Option<&Node<&'static str>>| 0;
         let mut h = HashMap::new();
         h.insert("1", 6);
         h.insert("2", 1);
@@ -67,7 +66,7 @@ mod test {
         h.insert("5", 3);
         h.insert("6", 0);
 
-        let heuristic = move |current: Option<&Node<&str>>, _: Option<&Node<&str>>| {
+        let heuristic = move |current: Option<&Node<&'static str>>, _: Option<&Node<&'static str>>| {
             *current.and_then(|node| h.get(&node.id)).unwrap()
         };
 

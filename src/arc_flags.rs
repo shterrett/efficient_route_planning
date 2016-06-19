@@ -1,6 +1,5 @@
 use std::collections::HashMap;
-use std::hash::Hash;
-use weighted_graph::{ Graph, Node };
+use weighted_graph::{ GraphKey, Graph, Node };
 use dijkstra::shortest_path as dijkstra;
 use pathfinder::{ CurrentBest, Pathfinder, EdgeIterator };
 
@@ -8,7 +7,7 @@ pub fn shortest_path<'a, T>(graph: &'a Graph<T>,
                         source: &T,
                         destination: Option<&T>
                        ) -> (i64, HashMap<T, CurrentBest<T>>)
-    where T: Clone + Hash + Eq {
+    where T: GraphKey {
     let identity = |_: Option<&Node<T>>, _ :Option<&Node<T>>| 0;
     let edge_iterator = |g: &'a Graph<T>, node_id: &T| ->
                         EdgeIterator<'a, T> {
@@ -31,7 +30,7 @@ pub struct Rect {
 
 impl Rect {
     pub fn contains<T>(&self, node: &Node<T>) -> bool
-           where T: Clone + Eq + Hash {
+           where T: GraphKey {
         node.x <= self.x_max &&
             node.x >= self.x_min &&
             node.y <= self.y_max &&
@@ -40,7 +39,7 @@ impl Rect {
 }
 
 pub fn assign_arc_flags<T>(graph: &mut Graph<T>, region: Rect)
-       where T: Clone + Eq + Hash {
+       where T: GraphKey {
     let internal = &internal_nodes(graph, &region)[..];
     let results = inbound_paths(graph, internal, &region);
     for result in results {
@@ -56,7 +55,7 @@ pub fn assign_arc_flags<T>(graph: &mut Graph<T>, region: Rect)
 }
 
 fn inbound_paths<T>(graph: &Graph<T>, node_ids: &[T], region: &Rect) -> Vec<CurrentBest<T>>
-   where T: Clone + Eq + Hash {
+   where T: GraphKey {
     node_ids.iter()
             .filter(|node_id| boundary_node(graph, region, *node_id))
             .flat_map(|node_id|
@@ -66,7 +65,7 @@ fn inbound_paths<T>(graph: &Graph<T>, node_ids: &[T], region: &Rect) -> Vec<Curr
 }
 
 fn internal_nodes<T>(graph: &Graph<T>, rect: &Rect) -> Vec<T>
-   where T: Clone + Eq + Hash {
+   where T: GraphKey {
     graph.all_nodes()
          .into_iter()
          .filter(|node_ref| rect.contains(node_ref))
@@ -75,7 +74,7 @@ fn internal_nodes<T>(graph: &Graph<T>, rect: &Rect) -> Vec<T>
 }
 
 fn boundary_node<T>(graph: &Graph<T>, rect: &Rect, node_id: &T) -> bool
-   where T: Clone + Eq + Hash {
+   where T: GraphKey {
     match graph.get_node(node_id) {
         Some(node) => {
             rect.contains(node) &&

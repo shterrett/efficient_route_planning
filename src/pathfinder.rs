@@ -1,9 +1,8 @@
 use std::collections::{ BinaryHeap, HashMap };
-use std::hash::Hash;
 use std::iter::Iterator;
 use std::cmp::Ordering;
 
-use weighted_graph::{ Graph, Node, Edge };
+use weighted_graph::{ GraphKey, Graph, Node, Edge };
 
 pub type HeuristicFn<'a, T> = Box<Fn(Option<&Node<T>>, Option<&Node<T>>) -> i64 + 'a>;
 pub type EdgeIterator<'a, T> = Box<Iterator<Item=&'a Edge<T>> + 'a>;
@@ -11,13 +10,13 @@ pub type EdgeIteratorFn<'a, T> = Box<Fn(&'a Graph<T>, &T) ->
                                      EdgeIterator<'a, T>>;
 pub type TerminatorFn<'a, T> = Box<Fn(&CurrentBest<T>, &HashMap<T, CurrentBest<T>>) -> bool>;
 
-pub struct Pathfinder<'a, T: Clone + Hash + Eq + 'a> {
+pub struct Pathfinder<'a, T: GraphKey + 'a> {
     h: HeuristicFn<'a, T>,
     eit: EdgeIteratorFn<'a, T>,
     t: TerminatorFn<'a, T>
 }
 
-impl<'a, T: Clone + Hash + Eq> Pathfinder<'a, T> {
+impl<'a, T: GraphKey> Pathfinder<'a, T> {
     pub fn new(heuristic: HeuristicFn<'a, T>,
                edge_iterator: EdgeIteratorFn<'a, T>,
                terminator: TerminatorFn<'a, T>) -> Self {
@@ -94,14 +93,14 @@ impl<'a, T: Clone + Hash + Eq> Pathfinder<'a, T> {
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
-pub struct CurrentBest<T: Clone + Hash + Eq> {
+pub struct CurrentBest<T: GraphKey> {
     pub cost: i64,
     pub id: T,
     pub predecessor: T
 }
 
 impl<T> Ord for CurrentBest<T>
-        where T: Clone + Hash + Eq {
+        where T: GraphKey {
     // flip order so min-heap instead of max-heap
     fn cmp(&self, other: &CurrentBest<T>) -> Ordering {
         other.cost.cmp(&self.cost)
@@ -109,7 +108,7 @@ impl<T> Ord for CurrentBest<T>
 }
 
 impl<T> PartialOrd for CurrentBest<T>
-        where T: Clone + Hash + Eq {
+        where T: GraphKey {
     fn partial_cmp(&self, other: &CurrentBest<T>) -> Option<Ordering> {
         Some(self.cmp(other))
     }
@@ -117,10 +116,9 @@ impl<T> PartialOrd for CurrentBest<T>
 
 #[cfg(test)]
 mod test {
-    use std::hash::Hash;
     use std::collections::HashMap;
     use std::iter::Iterator;
-    use weighted_graph::{ Graph, Node };
+    use weighted_graph::{ GraphKey, Graph, Node };
     use super::{ Pathfinder, CurrentBest, EdgeIterator };
 
     fn build_graph() ->  Graph<&'static str> {
@@ -163,7 +161,7 @@ mod test {
                                  source: &T,
                                  destination: Option<&T>
                                 ) -> (i64, HashMap<T, CurrentBest<T>>)
-        where T: Clone + Hash + Eq {
+        where T: GraphKey {
         let identity = |_: Option<&Node<T>>, _ :Option<&Node<T>>| 0;
         let edge_iterator = |g: &'a Graph<T>, node_id: &T| -> EdgeIterator<'a, T> {
             Box::new(g.get_edges(node_id).iter().filter(|_| true))

@@ -1,12 +1,11 @@
-use std::hash::Hash;
 use std::collections::HashMap;
 
-use weighted_graph::{ Graph, Node };
+use weighted_graph::{ GraphKey, Graph, Node };
 use pathfinder::{ CurrentBest, Pathfinder, EdgeIterator };
 
 pub fn contract_graph<T>(graph: &mut Graph<T>,
                          order: &Vec<T>)
-       where T: Clone + Eq + Hash {
+       where T: GraphKey {
     for node in order {
         contract_node(graph, &node);
     }
@@ -18,7 +17,7 @@ fn local_shortest_path<'a, T>(graph: &'a Graph<T>,
                               max_nodes: usize,
                               max_cost: i64
                              ) -> (i64, HashMap<T, CurrentBest<T>>)
-    where T: Clone + Hash + Eq {
+    where T: GraphKey {
     let identity = |_: Option<&Node<T>>, _ :Option<&Node<T>>| 0;
     let edge_iterator = |g: &'a Graph<T>, node_id: &T| ->
                         EdgeIterator<'a, T> {
@@ -35,7 +34,7 @@ fn local_shortest_path<'a, T>(graph: &'a Graph<T>,
 }
 
 fn contract_node<T>(graph: &mut Graph<T>, node_id: &T)
-   where T: Clone + Eq + Hash {
+   where T: GraphKey {
     let adjacent_nodes = find_adjacent_nodes(graph, node_id);
 
     for adjacent in &adjacent_nodes {
@@ -65,7 +64,7 @@ fn contract_node<T>(graph: &mut Graph<T>, node_id: &T)
 fn find_adjacent_nodes<T>(graph: &Graph<T>, node_id: &T) -> Vec<T>
     // assuming the graph is symmetric and directed
     // adjacent nodes <=> nodes on outgoing edges
-   where T: Clone + Hash + Eq {
+   where T: GraphKey {
     graph.get_edges(node_id)
          .iter()
          .filter(|edge| edge.arc_flag)
@@ -74,7 +73,7 @@ fn find_adjacent_nodes<T>(graph: &Graph<T>, node_id: &T) -> Vec<T>
 }
 
 fn remove_from_graph<T>(graph: &mut Graph<T>, adjacent_id: &T, node_id: &T)
-   where T: Clone + Hash + Eq {
+   where T: GraphKey {
     graph.get_mut_edge(node_id, adjacent_id)
         .map(|edge| edge.arc_flag = false);
     graph.get_mut_edge(adjacent_id, node_id)
@@ -85,12 +84,12 @@ fn weight_across_node<T>(graph: &Graph<T>,
                          from_node: &T,
                          to_node: &T,
                          cur_node: &T) -> i64
-   where T: Clone + Hash + Eq {
+   where T: GraphKey {
     edge_weight(graph, from_node, cur_node) + edge_weight(graph, cur_node, to_node)
 }
 
 fn edge_weight<T>(graph: &Graph<T>, from_node: &T, to_node: &T) -> i64
-   where T: Clone + Hash + Eq {
+   where T: GraphKey {
     graph.get_edges(from_node)
           .iter()
           .find(|edge| edge.to_id == *to_node)
@@ -99,7 +98,7 @@ fn edge_weight<T>(graph: &Graph<T>, from_node: &T, to_node: &T) -> i64
 }
 
 fn add_shortcut<T>(graph: &mut Graph<T>, from_node: &T, to_node: &T, weight: i64)
-   where T: Clone + Hash + Eq {
+   where T: GraphKey {
     graph.add_edge(from_node.clone(),
                    from_node.clone(),
                    to_node.clone(),

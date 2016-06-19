@@ -1,16 +1,15 @@
 use std::collections::{ HashSet };
-use std::hash::Hash;
-use weighted_graph::Graph;
+use weighted_graph::{ GraphKey, Graph };
 use dijkstra::shortest_path;
 
 pub fn reduce_to_largest_connected_component<T>(graph: Graph<T>) -> Graph<T>
-       where T: Clone + Hash + Eq {
+       where T: GraphKey {
     let untested_nodes = node_ids(&graph);
     reducer(graph, untested_nodes, vec![])
 }
 
 fn reducer<T>(graph: Graph<T>, untested_nodes: HashSet<T>, mut results: Vec<HashSet<T>>) -> Graph<T>
-   where T: Clone + Hash + Eq {
+   where T: GraphKey {
     match untested_nodes.iter().next() {
         None => {
             collapsed_graph(&graph, &results)
@@ -29,7 +28,7 @@ fn reducer<T>(graph: Graph<T>, untested_nodes: HashSet<T>, mut results: Vec<Hash
     }
 }
 
-fn explore_from<T: Clone + Hash + Eq>(root: &T, graph: &Graph<T>) -> HashSet<T> {
+fn explore_from<T: GraphKey>(root: &T, graph: &Graph<T>) -> HashSet<T> {
     let (_, results) = shortest_path(graph, root, None);
     results.values()
            .map(|result| result.id.clone())
@@ -37,7 +36,7 @@ fn explore_from<T: Clone + Hash + Eq>(root: &T, graph: &Graph<T>) -> HashSet<T> 
 }
 
 fn collapsed_graph<T>(graph: &Graph<T>, results: &Vec<HashSet<T>>) -> Graph<T>
-   where T: Clone + Hash + Eq {
+   where T: GraphKey {
     let mut new_graph = Graph::new();
     if let Some(nodes) = results.iter().max_by_key(|results| results.len()) {
         for node_id in nodes {
@@ -51,7 +50,7 @@ fn collapsed_graph<T>(graph: &Graph<T>, results: &Vec<HashSet<T>>) -> Graph<T>
 }
 
 fn add_node<T>(old_graph: &Graph<T>, mut new_graph: &mut Graph<T>, id: &T)
-   where T: Clone + Hash + Eq {
+   where T: GraphKey {
     if let Some(node) = old_graph.get_node(id) {
         new_graph.add_node(id.clone(),
                            node.x,
@@ -60,7 +59,7 @@ fn add_node<T>(old_graph: &Graph<T>, mut new_graph: &mut Graph<T>, id: &T)
 }
 
 fn add_edges<T>(old_graph: &Graph<T>, mut new_graph: &mut Graph<T>, id: &T)
-   where T: Clone + Hash + Eq {
+   where T: GraphKey {
     for edge in old_graph.get_edges(id) {
         new_graph.add_edge(edge.id.clone(),
                             id.clone(),
@@ -70,7 +69,7 @@ fn add_edges<T>(old_graph: &Graph<T>, mut new_graph: &mut Graph<T>, id: &T)
 }
 
 fn node_ids<T>(graph: &Graph<T>) -> HashSet<T>
-   where T: Clone + Hash + Eq {
+   where T: GraphKey {
     graph.all_nodes()
         .iter()
         .map(|node| node.id.clone())

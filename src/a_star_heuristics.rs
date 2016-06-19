@@ -1,14 +1,13 @@
 use std::collections::HashMap;
-use std::hash::Hash;
 use rand::{thread_rng, Rng};
 
-use weighted_graph::{ Graph, Node };
+use weighted_graph::{ GraphKey, Graph, Node };
 use road_weights::road_weight;
 use dijkstra::shortest_path;
 use pathfinder::HeuristicFn;
 
 pub fn crow_files<'a, T>() -> HeuristicFn<'a, T>
-       where T: 'a + Clone + Hash + Eq {
+       where T: 'a + GraphKey {
     Box::new(|current: Option<&Node<T>>, target: Option<&Node<T>>| {
         match (current, target) {
             (Some(cnode), Some(tnode)) => {
@@ -20,7 +19,7 @@ pub fn crow_files<'a, T>() -> HeuristicFn<'a, T>
 }
 
 pub fn build_landmark_heuristic<'a, T>(graph: &Graph<T>, num_landmarks: usize) -> HeuristicFn<'a, T>
-    where T: 'a + Clone + Hash + Eq {
+    where T: 'a + GraphKey {
         landmarks(
             build_landmark_distances(
                 graph,
@@ -28,7 +27,7 @@ pub fn build_landmark_heuristic<'a, T>(graph: &Graph<T>, num_landmarks: usize) -
 }
 
 fn landmarks<'a, T>(landmark_distances: Vec<HashMap<T, i64>>) -> HeuristicFn<'a, T>
-       where T: 'a + Clone + Hash + Eq {
+       where T: 'a + GraphKey {
     Box::new(move |current: Option<&Node<T>>, target: Option<&Node<T>>| {
         match (current, target) {
             (Some(c_node), Some(t_node)) => {
@@ -47,14 +46,14 @@ fn landmarks<'a, T>(landmark_distances: Vec<HashMap<T, i64>>) -> HeuristicFn<'a,
 
 fn build_landmark_distances<T>(graph: &Graph<T>, landmarks: Vec<T>)
    -> Vec<HashMap<T, i64>>
-   where T: Clone + Hash + Eq {
+   where T: GraphKey {
        landmarks.iter().map(|landmark_id|
            dijkstra_distances(graph, landmark_id)
        ).collect()
 }
 
 fn dijkstra_distances<T>(graph: &Graph<T>, source: &T) -> HashMap<T, i64>
-   where T: Clone + Hash + Eq {
+   where T: GraphKey {
     let (_, results) = shortest_path(graph, source, None);
     results.iter().map(|(node_id, results)|
                (node_id.clone(), results.cost)
@@ -62,7 +61,7 @@ fn dijkstra_distances<T>(graph: &Graph<T>, source: &T) -> HashMap<T, i64>
 }
 
 fn select_landmarks<T>(graph: &Graph<T>, num_landmarks: usize) -> Vec<T>
-   where T: Clone + Hash + Eq {
+   where T: GraphKey {
     let mut nodes = graph.all_nodes();
     let slice = nodes.as_mut_slice();
 
