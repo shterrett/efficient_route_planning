@@ -103,6 +103,7 @@ fn add_shortcut<T>(graph: &mut Graph<T>, from_node: &T, to_node: &T, weight: i64
                    from_node.clone(),
                    to_node.clone(),
                    weight);
+    graph.get_mut_edge(from_node, to_node).map(|edge| edge.arc_flag = true);
 }
 
 #[cfg(test)]
@@ -200,9 +201,9 @@ mod test {
                             .iter()
                             .find(|edge| edge.to_id == "a")
                             .unwrap();
-        assert!(!added_ac.arc_flag);
+        assert!(added_ac.arc_flag);
         assert_eq!(added_ac.weight, 2);
-        assert!(!added_ca.arc_flag);
+        assert!(added_ca.arc_flag);
         assert_eq!(added_ac.weight, 2);
 
         for edge in graph.get_edges(&"b") {
@@ -300,7 +301,7 @@ mod test {
             graph.get_mut_edge(&n2, &n1).map(|edge| edge.arc_flag = true);
         }
 
-        let shortcuts = vec![("c", "e", 2), ("e", "g", 3)];
+        let shortcuts = vec![("c", "e", 2), ("e", "g", 3), ("f", "g", 6)];
 
         let node_ids = nodes.iter()
                             .map(|&(id, _, _)| id)
