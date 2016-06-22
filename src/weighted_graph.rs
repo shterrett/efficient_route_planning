@@ -17,7 +17,8 @@ pub struct Graph<T: GraphKey> {
 pub struct Node<T: GraphKey> {
     pub id: T,
     pub x: f64,
-    pub y: f64
+    pub y: f64,
+    pub contraction_order: Option<i64>
 }
 
 #[derive(PartialEq, Debug)]
@@ -38,7 +39,11 @@ impl<T: GraphKey> Graph<T> {
     }
 
     pub fn add_node(&mut self, id: T, x: f64, y: f64) {
-        let node = Node { id: id.clone(), x: x, y: y };
+        let node = Node { id: id.clone(),
+                          x: x,
+                          y: y,
+                          contraction_order: None
+                        };
         self.nodes.insert(id, node);
     }
 
@@ -46,6 +51,12 @@ impl<T: GraphKey> Graph<T> {
            where T: Borrow<S>,
                  S: Hash + Eq {
         self.nodes.get(id)
+    }
+
+    pub fn get_mut_node<S>(&mut self, id: &S) -> Option<&mut Node<T>>
+           where T: Borrow<S>,
+                 S: Hash + Eq {
+        self.nodes.get_mut(id)
     }
 
     pub fn all_nodes(&self) -> Vec<&Node<T>> {
@@ -214,5 +225,17 @@ mod test {
                 assert!(!edge.arc_flag);
             }
         }
+    }
+
+    #[test]
+    fn edit_node() {
+        let mut graph = Graph::new();
+        graph.add_node("n", 0.0, 0.0);
+
+        assert_eq!(graph.get_node(&"n").and_then(|n| n.contraction_order), None);
+
+        graph.get_mut_node(&"n").map(|n| n.contraction_order = Some(1));
+
+        assert_eq!(graph.get_node(&"n").and_then(|n| n.contraction_order), Some(1));
     }
 }

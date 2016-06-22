@@ -4,10 +4,10 @@ use dijkstra::shortest_path as dijkstra;
 use pathfinder::{ CurrentBest, Pathfinder, EdgeIterator };
 
 pub fn shortest_path<'a, T>(graph: &'a Graph<T>,
-                        source: &T,
-                        destination: Option<&T>
-                       ) -> (i64, HashMap<T, CurrentBest<T>>)
-    where T: GraphKey {
+                            source: &T,
+                            destination: Option<&T>
+                           ) -> (i64, HashMap<T, CurrentBest<T>>)
+       where T: GraphKey {
     let identity = |_: Option<&Node<T>>, _ :Option<&Node<T>>| 0;
     let edge_iterator = |g: &'a Graph<T>, node_id: &T| ->
                         EdgeIterator<'a, T> {
@@ -128,9 +128,9 @@ mod test {
     #[test]
     fn node_contains_rectangle() {
         let rect = Rect { x_min: 0.0, x_max: 5.0, y_min: 0.0, y_max: 5.0 };
-        let contains = Node { id: "contains", x: 1.0, y: 1.0 };
-        let outside = Node { id: "outside", x: 10.0, y: 10.0 };
-        let border = Node { id: "border", x: 0.0, y: 3.0 };
+        let contains = Node { id: "contains", x: 1.0, y: 1.0, contraction_order: None };
+        let outside = Node { id: "outside", x: 10.0, y: 10.0, contraction_order: None };
+        let border = Node { id: "border", x: 0.0, y: 3.0, contraction_order: None };
 
         assert!(rect.contains(&contains));
         assert!(!rect.contains(&outside));

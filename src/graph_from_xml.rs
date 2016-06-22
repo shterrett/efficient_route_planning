@@ -130,7 +130,8 @@ mod test {
             Some(node) => {
                 node == &Node { id: "292403538".to_string(),
                                 x: 12.2482632,
-                                y: 54.0901746
+                                y: 54.0901746,
+                                contraction_order: None
                               }
             }
             None => false

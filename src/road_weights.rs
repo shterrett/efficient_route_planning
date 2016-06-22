@@ -71,8 +71,16 @@ mod test {
 
     #[test]
     fn test_road_weight() {
-        let node_1 = Node { id: "node-1".to_string(), x: -71.085743, y: 42.343212 };
-        let node_2 = Node { id: "node-2".to_string(), x: -71.087792, y: 42.347249 };
+        let node_1 = Node { id: "node-1".to_string(),
+                            x: -71.085743,
+                            y: 42.343212,
+                            contraction_order: None
+                          };
+        let node_2 = Node { id: "node-2".to_string(),
+                            x: -71.087792,
+                            y: 42.347249,
+                            contraction_order: None
+                          };
 
         let motorway_weight = road_weight(&node_1, &node_2, "motorway");
         let road_type_weight = road_weight(&node_1, &node_2, "road");

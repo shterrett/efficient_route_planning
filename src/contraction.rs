@@ -1,13 +1,58 @@
-use std::collections::HashMap;
+use std::collections::{ BinaryHeap, HashMap };
+use std::cmp::Ordering;
 
 use weighted_graph::{ GraphKey, Graph, Node };
 use pathfinder::{ CurrentBest, Pathfinder, EdgeIterator };
 
-pub fn contract_graph<T>(graph: &mut Graph<T>,
-                         order: &Vec<T>)
+pub fn preprocess_contraction<T>(graph: &mut Graph<T>)
        where T: GraphKey {
-    for node in order {
-        contract_node(graph, &node);
+    let node_order = preorder_nodes(graph);
+    contract_graph(graph, node_order);
+    set_increasing_arc_flags(graph);
+}
+
+fn contract_graph<T>(graph: &mut Graph<T>,
+                     mut order: BinaryHeap<EdgeDifference<T>>)
+       where T: GraphKey {
+    let mut contraction_order = 0;
+
+    while let Some(next_node) = order.pop() {
+        let contracted = graph.get_node(&next_node.node_id)
+                              .and_then(|n| n.contraction_order)
+                              .is_some();
+        if !contracted {
+            let edge_difference = contract_node(graph, &next_node.node_id, true);
+
+            if edge_difference <= next_node.edge_difference {
+                contraction_order += 1;
+                graph.get_mut_node(&next_node.node_id).map(|n| n.contraction_order = Some(contraction_order));
+                contract_node(graph, &next_node.node_id, false);
+            } else {
+                order.push(EdgeDifference { node_id: next_node.node_id,
+                                            edge_difference: edge_difference
+                                          });
+            }
+        }
+    }
+}
+
+fn set_increasing_arc_flags<T>(graph: &mut Graph<T>)
+   where T: GraphKey {
+    let node_ids: Vec<T> = graph.all_nodes()
+                                .iter()
+                                .map(|node| node.id.clone())
+                                .collect();
+    for id in node_ids {
+        let current_order = graph.get_node(&id).and_then(|n| n.contraction_order).unwrap();
+        let connected_node_ids: Vec<T> = graph.get_edges(&id)
+                                                .iter()
+                                                .map(|e| e.to_id.clone())
+                                                .collect();
+        for cid in connected_node_ids {
+            if graph.get_node(&cid).and_then(|n| n.contraction_order).unwrap() > current_order {
+                graph.get_mut_edge(&id, &cid).map(|e| e.arc_flag = true);
+            }
+        }
     }
 }
 
@@ -33,9 +78,12 @@ fn local_shortest_path<'a, T>(graph: &'a Graph<T>,
     pathfinder.shortest_path(graph, source, Some(destination))
 }
 
-fn contract_node<T>(graph: &mut Graph<T>, node_id: &T)
+fn contract_node<T>(graph: &mut Graph<T>, node_id: &T, count_only: bool) -> i64
    where T: GraphKey {
     let adjacent_nodes = find_adjacent_nodes(graph, node_id);
+    // assuming the graph is symmetric and directed
+    // edges = 2 * adjacent nodes
+    let mut ed: i64 = adjacent_nodes.len() as i64 * 2 * -1;
 
     for adjacent in &adjacent_nodes {
         remove_from_graph(graph, adjacent, node_id);
@@ -55,10 +103,19 @@ fn contract_node<T>(graph: &mut Graph<T>, node_id: &T)
                                                       weight_across);
 
             if min_weight > weight_across {
-                add_shortcut(graph, from_node, to_node, weight_across);
+                ed += 1;
+                if !count_only {
+                    add_shortcut(graph, from_node, to_node, weight_across);
+                }
             }
         }
     }
+    if count_only {
+        for adjacent in &adjacent_nodes {
+            unremove_from_graph(graph, adjacent, node_id);
+        }
+    }
+    ed
 }
 
 fn find_adjacent_nodes<T>(graph: &Graph<T>, node_id: &T) -> Vec<T>
@@ -74,10 +131,20 @@ fn find_adjacent_nodes<T>(graph: &Graph<T>, node_id: &T) -> Vec<T>
 
 fn remove_from_graph<T>(graph: &mut Graph<T>, adjacent_id: &T, node_id: &T)
    where T: GraphKey {
+    change_arc_flag(graph, adjacent_id, node_id, false);
+}
+
+fn unremove_from_graph<T>(graph: &mut Graph<T>, adjacent_id: &T, node_id: &T)
+   where T: GraphKey {
+    change_arc_flag(graph, adjacent_id, node_id, true);
+}
+
+fn change_arc_flag<T>(graph: &mut Graph<T>, adjacent_id: &T, node_id: &T, flag: bool)
+   where T: GraphKey {
     graph.get_mut_edge(node_id, adjacent_id)
-        .map(|edge| edge.arc_flag = false);
+        .map(|edge| edge.arc_flag = flag);
     graph.get_mut_edge(adjacent_id, node_id)
-            .map(|edge| edge.arc_flag = false);
+            .map(|edge| edge.arc_flag = flag);
 }
 
 fn weight_across_node<T>(graph: &Graph<T>,
@@ -106,12 +173,54 @@ fn add_shortcut<T>(graph: &mut Graph<T>, from_node: &T, to_node: &T, weight: i64
     graph.get_mut_edge(from_node, to_node).map(|edge| edge.arc_flag = true);
 }
 
+#[derive(Clone, Eq, PartialEq, Debug)]
+struct EdgeDifference<T: GraphKey> {
+    node_id: T,
+    edge_difference: i64
+}
+
+impl<T> Ord for EdgeDifference<T>
+        where T: GraphKey {
+    // flip order so min-heap instead of max-heap
+    fn cmp(&self, other: &EdgeDifference<T>) -> Ordering {
+        other.edge_difference.cmp(&self.edge_difference)
+    }
+}
+
+impl<T> PartialOrd for EdgeDifference<T>
+        where T: GraphKey {
+    fn partial_cmp(&self, other: &EdgeDifference<T>) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+fn preorder_nodes<T>(graph: &mut Graph<T>) -> BinaryHeap<EdgeDifference<T>>
+   where T: GraphKey {
+       let mut preorder = BinaryHeap::new();
+       let node_ids: Vec<T> = graph.all_nodes()
+                                   .iter()
+                                   .map(|node| node.id.clone())
+                                   .collect();
+       for node_id in node_ids {
+           let edge_difference = contract_node(graph, &node_id, true);
+           preorder.push(EdgeDifference { node_id: node_id,
+                                          edge_difference: edge_difference
+                                        });
+       }
+
+       preorder
+}
+
 #[cfg(test)]
 mod test {
     use weighted_graph::{ Graph };
+    use arc_flags::shortest_path as arc_flags_shortest_path;
     use super::{ local_shortest_path,
                  contract_node,
-                 contract_graph
+                 contract_graph,
+                 preorder_nodes,
+                 set_increasing_arc_flags,
+                 preprocess_contraction
                };
 
     #[test]
@@ -191,7 +300,7 @@ mod test {
             graph.get_mut_edge(&n2, &n1).map(|edge| edge.arc_flag = true);
         }
 
-        contract_node(&mut graph, &"b");
+        contract_node(&mut graph, &"b", false);
 
         let added_ac = graph.get_edges(&"a")
                             .iter()
@@ -222,6 +331,38 @@ mod test {
     }
 
     #[test]
+    fn calculate_edge_difference_in_shortest_path() {
+        let mut graph = Graph::new();
+        graph.add_node("a", 0.0, 1.0);
+        graph.add_node("b", 1.0, 0.0);
+        graph.add_node("c", 2.0, 1.0);
+        graph.add_node("d", 1.0, 1.0);
+        let edges = vec![("a", "b", 1),
+                         ("b", "c", 1),
+                         ("c", "d", 3),
+                         ("d", "a", 3)];
+        for (n1, n2, w) in edges {
+            graph.add_edge(n1, n1, n2, w);
+            graph.add_edge(n2, n2, n1, w);
+            graph.get_mut_edge(&n1, &n2).map(|edge| edge.arc_flag = true);
+            graph.get_mut_edge(&n2, &n1).map(|edge| edge.arc_flag = true);
+        }
+
+        let ed = contract_node(&mut graph, &"b", true);
+        assert_eq!(ed, 2 - 4);
+
+        for edge in graph.get_edges(&"b") {
+            assert!(edge.arc_flag);
+        }
+        for edge in graph.get_edges(&"a") {
+            assert!(edge.arc_flag);
+        }
+        for edge in graph.get_edges(&"c") {
+            assert!(edge.arc_flag);
+        }
+    }
+
+    #[test]
     fn contract_node_not_in_shortest_path() {
         let mut graph = Graph::new();
         graph.add_node("a", 0.0, 1.0);
@@ -239,7 +380,7 @@ mod test {
             graph.get_mut_edge(&n2, &n1).map(|edge| edge.arc_flag = true);
         }
 
-        contract_node(&mut graph, &"b");
+        contract_node(&mut graph, &"b", false);
 
         let added_ac = graph.get_edges(&"a")
                             .iter()
@@ -266,7 +407,40 @@ mod test {
     }
 
     #[test]
-    fn contract_all_nodes() {
+    fn calculate_edge_difference_not_in_shortest_path() {
+        let mut graph = Graph::new();
+        graph.add_node("a", 0.0, 1.0);
+        graph.add_node("b", 1.0, 0.0);
+        graph.add_node("c", 2.0, 1.0);
+        graph.add_node("d", 1.0, 1.0);
+        let edges = vec![("a", "b", 2),
+                         ("b", "c", 2),
+                         ("c", "d", 1),
+                         ("d", "a", 1)];
+        for (n1, n2, w) in edges {
+            graph.add_edge(n1, n1, n2, w);
+            graph.add_edge(n2, n2, n1, w);
+            graph.get_mut_edge(&n1, &n2).map(|edge| edge.arc_flag = true);
+            graph.get_mut_edge(&n2, &n1).map(|edge| edge.arc_flag = true);
+        }
+
+        let ed = contract_node(&mut graph, &"b", true);
+        assert_eq!(ed, 0 - 4);
+
+        for edge in graph.get_edges(&"b") {
+            assert!(edge.arc_flag);
+        }
+        for edge in graph.get_edges(&"a") {
+            assert!(edge.arc_flag);
+        }
+        for edge in graph.get_edges(&"c") {
+            assert!(edge.arc_flag);
+        }
+    }
+
+    fn build_full_graph() -> (Vec<(&'static str, f64, f64)>, // nodes
+                              Vec<(&'static str, &'static str, i64)>, // edges
+                              Graph<&'static str>) {
         let mut graph = Graph::new();
         let nodes = vec![("a", 0.0, 3.0),
                          ("b", 0.0, 1.0),
@@ -301,30 +475,88 @@ mod test {
             graph.get_mut_edge(&n2, &n1).map(|edge| edge.arc_flag = true);
         }
 
-        let shortcuts = vec![("c", "e", 2), ("e", "g", 3), ("f", "g", 6)];
+        (nodes, edges, graph)
+    }
 
-        let node_ids = nodes.iter()
-                            .map(|&(id, _, _)| id)
-                            .collect::<Vec<&str>>();
-        contract_graph(&mut graph, &node_ids);
+    #[test]
+    fn order_nodes_by_edge_difference() {
+        let (_, _, mut graph) = build_full_graph();
+
+        let mut node_order = preorder_nodes(&mut graph);
+        let mut current_edge_difference = i64::min_value();
+
+        while let Some(next_node) = node_order.pop() {
+            assert!(current_edge_difference <= next_node.edge_difference);
+            current_edge_difference = next_node.edge_difference;
+        }
+        assert_eq!(current_edge_difference, 0);
+    }
+
+    #[test]
+    fn contract_all_nodes() {
+        let (nodes, edges, mut graph) = build_full_graph();
+
+        let node_order = preorder_nodes(&mut graph);
+        contract_graph(&mut graph, node_order);
 
         for &(id, _, _) in &nodes {
             assert!(graph.get_edges(&id).iter().all(|edge| !edge.arc_flag));
+            assert!(graph.get_node(&id)
+                         .map(|node|
+                              node.contraction_order.is_some())
+                         .unwrap_or(false))
         }
-        for &(n1, n2, w) in &shortcuts {
-            assert!(graph.get_edges(&n1)
-                         .iter()
-                         .find(|edge| edge.to_id == n2)
-                         .map(|edge| edge.weight == w).unwrap_or(false));
-            assert!(graph.get_edges(&n2)
-                         .iter()
-                         .find(|edge| edge.to_id == n1)
-                         .map(|edge| edge.weight == w).unwrap_or(false));
-        }
-
         let edge_count = nodes.iter()
                               .map(|&(id, _, _)| graph.get_edges(&id).len())
                               .fold(0, |sum, l| sum + l);
-        assert_eq!(edge_count, shortcuts.len() * 2 + edges.len() * 2);
+        assert!(edge_count >= edges.len() * 2);
+    }
+
+    #[test]
+    fn mark_edges_where_contraction_order_increases() {
+        let (_, _, mut graph) = build_full_graph();
+
+        let node_order = preorder_nodes(&mut graph);
+        contract_graph(&mut graph, node_order);
+
+        set_increasing_arc_flags(&mut graph);
+
+        for node in graph.all_nodes() {
+            for edge in graph.get_edges(&node.id) {
+                if graph.get_node(&edge.to_id)
+                        .and_then(|n| n.contraction_order)
+                        .unwrap() >
+                   node.contraction_order.unwrap() {
+                    assert!(edge.arc_flag);
+                } else {
+                    assert!(!edge.arc_flag);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn full_preprocessing_returns_walkable_graph() {
+        let (nodes, _, mut graph) = build_full_graph();
+
+        preprocess_contraction(&mut graph);
+
+
+        for (id, _, _) in nodes {
+            let (_, results) = arc_flags_shortest_path(&graph,
+                                                       &id,
+                                                       None);
+            let start_node_contraction = graph.get_node(&id)
+                                              .unwrap()
+                                              .contraction_order
+                                              .unwrap();
+            let result_contractions: Vec<i64> = results.keys()
+                                                       .map(|id| graph.get_node(id)
+                                                                       .unwrap()
+                                                                       .contraction_order
+                                                                       .unwrap())
+                                                       .collect();
+            assert!(result_contractions.iter().all(|&co| co >= start_node_contraction));
+        }
     }
 }

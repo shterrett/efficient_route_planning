@@ -115,8 +115,8 @@ mod test {
 
     #[test]
     fn calculate_crow_flying_distance() {
-        let node_1 = Node { id: "1", x: 0.0, y: 0.0 };
-        let node_2 = Node { id: "2", x: 1.0, y: 1.0 };
+        let node_1 = Node { id: "1", x: 0.0, y: 0.0, contraction_order: None };
+        let node_2 = Node { id: "2", x: 1.0, y: 1.0, contraction_order: None };
 
         let heuristic = crow_files();
 
@@ -128,7 +128,7 @@ mod test {
 
     #[test]
     fn crow_flies_0_if_none() {
-        let node_1 = Node { id: "1", x: 0.0, y: 0.0 };
+        let node_1 = Node { id: "1", x: 0.0, y: 0.0, contraction_order: None };
 
         let heuristic = crow_files();
 
