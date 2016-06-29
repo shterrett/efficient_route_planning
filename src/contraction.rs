@@ -2,7 +2,23 @@ use std::collections::{ BinaryHeap, HashMap };
 use std::cmp::Ordering;
 
 use weighted_graph::{ GraphKey, Graph, Node };
+use arc_flags::shortest_path as arc_flags_shortest_path;
 use pathfinder::{ CurrentBest, Pathfinder, EdgeIterator };
+
+pub fn shortest_path<T>(graph: &Graph<T>,
+                        source: &T,
+                        destination: &T
+                        ) -> Option<i64>
+       where T: GraphKey {
+    let (_, from_source) = arc_flags_shortest_path(graph, source, None);
+    let (_, from_dest) = arc_flags_shortest_path(graph, destination, None);
+
+    from_source.iter().filter_map(|(node_id, source_result)|
+        from_dest.get(node_id).map(|dest_result|
+                                   dest_result.cost + source_result.cost
+                                  )
+    ).min()
+}
 
 pub fn preprocess_contraction<T>(graph: &mut Graph<T>)
        where T: GraphKey {
@@ -220,7 +236,8 @@ mod test {
                  contract_graph,
                  preorder_nodes,
                  set_increasing_arc_flags,
-                 preprocess_contraction
+                 preprocess_contraction,
+                 shortest_path
                };
 
     #[test]
@@ -541,7 +558,6 @@ mod test {
 
         preprocess_contraction(&mut graph);
 
-
         for (id, _, _) in nodes {
             let (_, results) = arc_flags_shortest_path(&graph,
                                                        &id,
@@ -558,5 +574,15 @@ mod test {
                                                        .collect();
             assert!(result_contractions.iter().all(|&co| co >= start_node_contraction));
         }
+    }
+
+    #[test]
+    fn find_shortest_path_cost() {
+        let (_, _, mut graph) = build_full_graph();
+
+        preprocess_contraction(&mut graph);
+        let cost = shortest_path(&graph, &"a", &"i");
+
+        assert_eq!(cost, Some(6));
     }
 }
