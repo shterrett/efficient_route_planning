@@ -69,27 +69,27 @@ mod test {
         let mut expected = HashMap::new();
         expected.insert("1", CurrentBest { id: "1",
                                            cost: 0,
-                                           predecessor: "1"
+                                           predecessor: None
                                          });
         expected.insert("2", CurrentBest { id: "2",
                                            cost: 5,
-                                           predecessor: "4"
+                                           predecessor: Some("4")
                                          });
         expected.insert("3", CurrentBest { id: "3",
                                            cost: 4,
-                                           predecessor: "6"
+                                           predecessor: Some("6")
                                          });
         expected.insert("4", CurrentBest { id: "4",
                                            cost: 1,
-                                           predecessor: "1"
+                                           predecessor: Some("1")
                                          });
         expected.insert("5", CurrentBest { id: "5",
                                            cost: 6,
-                                           predecessor: "6"
+                                           predecessor: Some("6")
                                          });
         expected.insert("6", CurrentBest { id: "6",
                                            cost: 3,
-                                           predecessor: "4"
+                                           predecessor: Some("4")
                                          });
 
         let (_, results) = shortest_path(&graph, &"1", None);

@@ -43,8 +43,10 @@ pub fn assign_arc_flags<T>(graph: &mut Graph<T>, region: Rect)
     let internal = &internal_nodes(graph, &region)[..];
     let results = inbound_paths(graph, internal, &region);
     for result in results {
-        graph.get_mut_edge(&result.id, &result.predecessor)
-             .map(|edge| edge.arc_flag = true);
+        if let Some(predecessor) = result.predecessor {
+            graph.get_mut_edge(&result.id, &predecessor)
+                .map(|edge| edge.arc_flag = true);
+        }
     }
 
     for from_id in internal {

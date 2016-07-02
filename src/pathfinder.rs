@@ -53,7 +53,7 @@ impl<'a, T: GraphKey> Pathfinder<'a, T> {
                                                            graph.get_node(id)
                                                          )
                                                         ),
-                                    predecessor: source.clone()
+                                    predecessor: None
                                 };
         results.insert(source.clone(), initial.clone());
         min_heap.push(initial.clone());
@@ -80,7 +80,7 @@ impl<'a, T: GraphKey> Pathfinder<'a, T> {
                                                 );
                         let hnode = CurrentBest { id: node.id.clone(),
                                                   cost: cost,
-                                                  predecessor: current.id.clone()
+                                                  predecessor: Some(current.id.clone())
                                                 };
                         min_heap.push(hnode.clone());
                         results.insert(node.id.clone(), hnode.clone());
@@ -96,7 +96,7 @@ impl<'a, T: GraphKey> Pathfinder<'a, T> {
 pub struct CurrentBest<T: GraphKey> {
     pub cost: i64,
     pub id: T,
-    pub predecessor: T
+    pub predecessor: Option<T>
 }
 
 impl<T> Ord for CurrentBest<T>
@@ -150,8 +150,8 @@ mod test {
 
     #[test]
     fn orderable_node_ref() {
-        let less = CurrentBest { id: "less", cost: 1, predecessor: "" };
-        let more = CurrentBest { id: "more", cost: 5, predecessor: "" };
+        let less = CurrentBest { id: "less", cost: 1, predecessor: None };
+        let more = CurrentBest { id: "more", cost: 5, predecessor: None };
 
         assert!(less > more);
         assert!(more < less);

@@ -21,8 +21,8 @@ pub fn shortest_path<T>(graph: &Graph<T>,
                                                 )
                                            ).min_by_key(|&(cost, _)| cost) {
         Some((cost, joint)) => {
-            let mut back_path = backtrack_path(graph, &joint, from_source);
-            let mut fore_path = backtrack_path(graph, &joint, from_dest);
+            let mut back_path = backtrack_path(graph, &joint, &from_source);
+            let mut fore_path = backtrack_path(graph, &joint, &from_dest);
             back_path.reverse();
             back_path.pop();
             back_path.append(&mut fore_path);
@@ -206,25 +206,23 @@ fn add_shortcut<T>(graph: &mut Graph<T>,
     graph.get_mut_edge(from_node, to_node).map(|edge| edge.shortcut = Some(shortcut.clone()));
 }
 
-fn backtrack_path<T>(graph: &Graph<T>, path_start: &T, results: HashMap<T, CurrentBest<T>>) -> Vec<T>
+fn backtrack_path<T>(graph: &Graph<T>, path_start: &T, results: &HashMap<T, CurrentBest<T>>) -> Vec<T>
    where T: GraphKey {
-       let mut path = vec![];
-       let mut current = path_start;
-       path.push(current.clone());
+    let mut path = vec![];
+    path.push(path_start.clone());
 
-       while let Some(&CurrentBest { ref predecessor, .. }) = results.get(current) {
-           if predecessor != current  {
-               expand_shortcut(graph,
-                               &predecessor,
-                               &current,
-                               &mut path);
-               current = predecessor;
-               path.push(current.clone());
-           } else {
-               break
-           }
-       }
-       path
+    if let Some(predecessor) = results.get(path_start)
+                                      .and_then(|cb| cb.clone().predecessor) {
+        expand_shortcut(graph,
+                        &predecessor,
+                        &path_start,
+                        &mut path);
+        let mut shortcuts = backtrack_path(graph, &predecessor, results);
+        path.append(&mut shortcuts);
+        path
+    } else {
+        path
+    }
 }
 
 fn expand_shortcut<T>(graph: &Graph<T>,
