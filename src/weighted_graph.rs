@@ -27,7 +27,8 @@ pub struct Edge<T: GraphKey> {
     pub from_id: T,
     pub to_id: T,
     pub weight: i64,
-    pub arc_flag: bool
+    pub arc_flag: bool,
+    pub shortcut: Option<T>
 }
 
 impl<T: GraphKey> Graph<T> {
@@ -84,7 +85,8 @@ impl<T: GraphKey> Graph<T> {
                             from_id: from_id.clone(),
                             to_id: to_id.clone(),
                             weight: weight,
-                            arc_flag: false
+                            arc_flag: false,
+                            shortcut: None
                           })
             } else {
                 None
@@ -165,19 +167,22 @@ mod test {
                                       from_id: "n2",
                                       to_id: "n1",
                                       weight: 13,
-                                      arc_flag: false
+                                      arc_flag: false,
+                                      shortcut: None
                                     },
                                Edge { id: "e3",
                                       from_id: "n2",
                                       to_id: "n3",
                                       weight: 5,
-                                      arc_flag: false
+                                      arc_flag: false,
+                                      shortcut: None
                                     }]);
         assert_eq!(edges_n3, &[Edge { id: "e2",
                                       from_id: "n3",
                                       to_id: "n2",
                                       weight: 5,
-                                      arc_flag: false
+                                      arc_flag: false,
+                                      shortcut: None
                                     }]);
     }
 

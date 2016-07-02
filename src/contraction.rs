@@ -1,23 +1,35 @@
 use std::collections::{ BinaryHeap, HashMap };
 use std::cmp::Ordering;
 
-use weighted_graph::{ GraphKey, Graph, Node };
+use weighted_graph::{ GraphKey, Graph, Node, Edge };
 use arc_flags::shortest_path as arc_flags_shortest_path;
 use pathfinder::{ CurrentBest, Pathfinder, EdgeIterator };
 
 pub fn shortest_path<T>(graph: &Graph<T>,
                         source: &T,
                         destination: &T
-                        ) -> Option<i64>
+                        ) -> Option<(i64, Vec<T>)>
        where T: GraphKey {
     let (_, from_source) = arc_flags_shortest_path(graph, source, None);
     let (_, from_dest) = arc_flags_shortest_path(graph, destination, None);
 
-    from_source.iter().filter_map(|(node_id, source_result)|
-        from_dest.get(node_id).map(|dest_result|
-                                   dest_result.cost + source_result.cost
-                                  )
-    ).min()
+    match from_source.iter()
+                     .filter_map(|(node_id, source_result)|
+                                  from_dest.get(node_id)
+                                           .map(|dest_result|
+                                                (dest_result.cost + source_result.cost, node_id.clone())
+                                                )
+                                           ).min_by_key(|&(cost, _)| cost) {
+        Some((cost, joint)) => {
+            let mut back_path = backtrack_path(graph, &joint, from_source);
+            let mut fore_path = backtrack_path(graph, &joint, from_dest);
+            back_path.reverse();
+            back_path.pop();
+            back_path.append(&mut fore_path);
+            Some((cost, back_path))
+        },
+        None => None
+    }
 }
 
 pub fn preprocess_contraction<T>(graph: &mut Graph<T>)
@@ -121,7 +133,7 @@ fn contract_node<T>(graph: &mut Graph<T>, node_id: &T, count_only: bool) -> i64
             if min_weight > weight_across {
                 ed += 1;
                 if !count_only {
-                    add_shortcut(graph, from_node, to_node, weight_across);
+                    add_shortcut(graph, from_node, to_node, node_id, weight_across);
                 }
             }
         }
@@ -180,13 +192,58 @@ fn edge_weight<T>(graph: &Graph<T>, from_node: &T, to_node: &T) -> i64
           .unwrap_or(0)
 }
 
-fn add_shortcut<T>(graph: &mut Graph<T>, from_node: &T, to_node: &T, weight: i64)
+fn add_shortcut<T>(graph: &mut Graph<T>,
+                   from_node: &T,
+                   to_node: &T,
+                   shortcut: &T,
+                   weight: i64)
    where T: GraphKey {
     graph.add_edge(from_node.clone(),
                    from_node.clone(),
                    to_node.clone(),
                    weight);
     graph.get_mut_edge(from_node, to_node).map(|edge| edge.arc_flag = true);
+    graph.get_mut_edge(from_node, to_node).map(|edge| edge.shortcut = Some(shortcut.clone()));
+}
+
+fn backtrack_path<T>(graph: &Graph<T>, path_start: &T, results: HashMap<T, CurrentBest<T>>) -> Vec<T>
+   where T: GraphKey {
+       let mut path = vec![];
+       let mut current = path_start;
+       path.push(current.clone());
+
+       while let Some(&CurrentBest { ref predecessor, .. }) = results.get(current) {
+           if predecessor != current  {
+               expand_shortcut(graph,
+                               &predecessor,
+                               &current,
+                               &mut path);
+               current = predecessor;
+               path.push(current.clone());
+           } else {
+               break
+           }
+       }
+       path
+}
+
+fn expand_shortcut<T>(graph: &Graph<T>,
+                      predecessor: &T,
+                      current: &T,
+                      path: &mut Vec<T>)
+   where T: GraphKey {
+    match graph.get_edges(predecessor).iter().find(|e| e.to_id == *current) {
+        Some(&Edge { ref shortcut, .. }) => {
+            match shortcut {
+                &Some(ref shortcut_node) => {
+                    path.push(shortcut_node.clone());
+                    expand_shortcut(graph, &predecessor, &shortcut_node, path);
+                },
+                &None => {}
+            }
+        },
+        None => {}
+    }
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -328,9 +385,11 @@ mod test {
                             .find(|edge| edge.to_id == "a")
                             .unwrap();
         assert!(added_ac.arc_flag);
+        assert_eq!(added_ac.shortcut, Some("b"));
         assert_eq!(added_ac.weight, 2);
         assert!(added_ca.arc_flag);
-        assert_eq!(added_ac.weight, 2);
+        assert_eq!(added_ca.shortcut, Some("b"));
+        assert_eq!(added_ca.weight, 2);
 
         for edge in graph.get_edges(&"b") {
             assert!(!edge.arc_flag);
@@ -581,8 +640,24 @@ mod test {
         let (_, _, mut graph) = build_full_graph();
 
         preprocess_contraction(&mut graph);
-        let cost = shortest_path(&graph, &"a", &"i");
+        let result = shortest_path(&graph, &"a", &"i");
 
-        assert_eq!(cost, Some(6));
+        match result {
+            Some((cost, _)) => assert_eq!(cost, 6),
+            None => assert!(false)
+        }
+    }
+
+    #[test]
+    fn find_shortest_path() {
+        let (_, _, mut graph) = build_full_graph();
+
+        preprocess_contraction(&mut graph);
+        let result = shortest_path(&graph, &"a", &"i");
+
+        match result {
+            Some((_, path)) => assert_eq!(path, vec!["a", "d", "e", "h", "i"]),
+            None => assert!(false)
+        }
     }
 }
