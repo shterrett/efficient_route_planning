@@ -15,3 +15,4 @@ pub mod dijkstra;
 pub mod connected_component;
 pub mod arc_flags;
 pub mod contraction;
+pub mod transit_nodes;
