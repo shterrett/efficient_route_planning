@@ -7,6 +7,37 @@ use arc_flags::shortest_path as arc_flags_shortest_path;
 use dijkstra::shortest_path as dijkstra_shortest_path;
 use contraction::shortest_path as contraction_shortest_path;
 
+pub fn shortest_path<T>(source_distances: &HashMap<T, i64>,
+                        destination_distances: &HashMap<T, i64>,
+                        inter_transit_node_distances: &HashMap<(T, T), i64>
+                       ) -> Option<(i64, (T, T))>
+    where T: GraphKey {
+        inter_transit_node_distances.iter()
+            .filter_map(|(&(ref fm, ref to), &inter_cost)|
+                            path_cost_through_transits(fm,
+                                                    to,
+                                                    inter_cost,
+                                                    source_distances,
+                                                    destination_distances).map(|cost|
+                                                        (cost, (fm, to)))
+                       )
+            .min_by_key(|&(cost, _)| cost)
+            .map(|(cost, (source_transit, dest_transit))|
+                 (cost, (source_transit.clone(), dest_transit.clone()))
+                )
+}
+
+fn path_cost_through_transits<T>(from: &T,
+                                 to: &T,
+                                 inter_cost: i64,
+                                 source_distances: &HashMap<T, i64>,
+                                 destination_distances: &HashMap<T, i64>) -> Option<i64>
+   where T: GraphKey {
+    source_distances.get(from)
+                    .and_then(|sd| destination_distances.get(to).map(|dd| dd + sd))
+                    .map(|dist| dist + inter_cost)
+}
+
 pub fn transit_nodes_contraction<T>(graph: &mut Graph<T>) -> HashSet<T>
        where T: GraphKey {
     let number_transit_nodes = (graph.all_nodes().len() as f64).sqrt().floor() as usize;
@@ -26,13 +57,12 @@ pub fn transit_nodes_contraction<T>(graph: &mut Graph<T>) -> HashSet<T>
          .collect()
 }
 
-fn neighboring_transit_nodes<T>(graph: &Graph<T>,
-                                transit_nodes: &HashSet<T>,
-                                origin: &T)
-                               -> HashMap<T, i64>
+pub fn neighboring_transit_nodes<T>(graph: &Graph<T>,
+                                    transit_nodes: &HashSet<T>,
+                                    origin: &T)
+                                   -> HashMap<T, i64>
    where T: GraphKey {
     let (_, results) = arc_flags_shortest_path(graph, origin, None);
-    println!("RESULTS {:?}", results);
 
     results.iter()
            .filter_map(|(node_id, _)|
@@ -87,9 +117,9 @@ fn first_transit_node_helper<T>(node_id: T,
     }
 }
 
-fn pairwise_transit_node_distances<T>(graph: &Graph<T>,
-                                      transit_nodes: &HashSet<T>
-                                     ) -> HashMap<(T, T), i64>
+pub fn pairwise_transit_node_distances<T>(graph: &Graph<T>,
+                                          transit_nodes: &HashSet<T>
+                                         ) -> HashMap<(T, T), i64>
    where T: GraphKey {
     let mut pairs = vec![];
     for from in transit_nodes {
@@ -113,7 +143,8 @@ mod test {
     use dijkstra::shortest_path as dijkstra;
     use super::{ transit_nodes_contraction,
                  neighboring_transit_nodes,
-                 pairwise_transit_node_distances
+                 pairwise_transit_node_distances,
+                 shortest_path
                };
 
     fn build_full_graph() -> (Vec<(&'static str, f64, f64)>, // nodes
@@ -214,6 +245,33 @@ mod test {
                 let (cost, _) = dijkstra(&graph, &from, Some(&to));
                 assert_eq!(cost, *transit_node_distances.get(&(from, to)).unwrap());
             }
+        }
+    }
+
+    #[test]
+    fn find_shortest_path() {
+        let (_, _, mut graph) = build_full_graph();
+        let source = "c";
+        let destination = "g";
+
+        let transit_nodes = transit_nodes_contraction(&mut graph);
+        let source_distances = neighboring_transit_nodes(&graph,
+                                                         &transit_nodes,
+                                                         &source);
+        let destination_distances = neighboring_transit_nodes(&graph,
+                                                              &transit_nodes,
+                                                              &destination);
+        let inter_transit_node_distances = pairwise_transit_node_distances(&graph,
+                                                                           &transit_nodes);
+        match shortest_path(&source_distances,
+                            &destination_distances,
+                            &inter_transit_node_distances) {
+            Some((cost, (fm_transit, to_transit))) => {
+                assert_eq!(cost, 5);
+                assert!(transit_nodes.contains(&fm_transit));
+                assert!(transit_nodes.contains(&to_transit));
+            }
+            None => assert!(false)
         }
     }
 }
