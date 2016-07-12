@@ -1,0 +1,7 @@
+stop_id,stop_code,stop_name,stop_desc,stop_lat,stop_lon,zone_id,stop_url,location_type,parent_station
+A,,Stop-A,,1,0,,,,
+B,,Stop-B,,3,1,,,,
+C,,Stop-C,,0,1,,,,
+D,,Stop-D,,1,2,,,,
+E,,Stop-E,,2,3,,,,
+F,,Stop-F,,1,4,,,,

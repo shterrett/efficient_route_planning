@@ -1,0 +1,226 @@
+route_id,agency_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_color,route_text_color
+B1,MTA NYCT,B1,via 86th St / Ocean Pkwy,Bay Ridge - Manhattan Beach,3,http://www.mta.info/nyct/bus/schedule/bkln/b001cur.pdf,006CB7,FFFFFF
+B11,MTA NYCT,B11,via 49th & 50th St / Avenue J,Sunset Park - Midwood,3,http://www.mta.info/nyct/bus/schedule/bkln/b011cur.pdf,006CB7,FFFFFF
+B12,MTA NYCT,B12,via Clarkson Av / Empire Blvd / East New York Av,Lefferts Gardens - East New York,3,http://www.mta.info/nyct/bus/schedule/bkln/b012cur.pdf,6CBE45,FFFFFF
+B13,MTA NYCT,B13,via Crescent St / Jamaica Av / Wyckoff Av,Spring Creek - Wyckoff Hospital,3,http://www.mta.info/nyct/bus/schedule/bkln/b013cur.pdf,FAA61A,FFFFFF
+B14,MTA NYCT,B14,via Sutter Av / Pitkin Av,Spring Creek - Crown Heights,3,http://www.mta.info/nyct/bus/schedule/bkln/b014cur.pdf,00AEEF,FFFFFF
+B15,MTA NYCT,B15,via Marcus Garvey Blvd / New Lots Av,Bedford Stuyvesant - JFK Airport,3,http://www.mta.info/nyct/bus/schedule/bkln/b015cur.pdf,B933AD,FFFFFF
+B16,MTA NYCT,B16,via Ft Hamilton Pkwy / 13th & 14th Av,Bay Ridge - Lefferts Gardens,3,http://www.mta.info/nyct/bus/schedule/bkln/b016cur.pdf,FAA61A,FFFFFF
+B17,MTA NYCT,B17,via Remsen Av / Seaview Av,Carnarsie - Crown Heights,3,http://www.mta.info/nyct/bus/schedule/bkln/b017cur.pdf,B933AD,FFFFFF
+B2,MTA NYCT,B2,via Avenue R / Avenue S,Kings Hwy Station - Kings Plaza,3,http://www.mta.info/nyct/bus/schedule/bkln/b002cur.pdf,006CB7,FFFFFF
+B20,MTA NYCT,B20,via Pennsylvania Av / Decatur St,Ridgewood - Spring Creek,3,http://www.mta.info/nyct/bus/schedule/bkln/b020cur.pdf,6CBE45,FFFFFF
+B24,MTA NYCT,B24,via Greenpoint Av & 48th St / Meeker Av,Williamsburg - Greenpoint,3,http://www.mta.info/nyct/bus/schedule/bkln/b024cur.pdf,EE352E,FFFFFF
+B25,MTA NYCT,B25,via Fulton St,Dwntn Bklyn & DUMBO - Broadway Junction,3,http://www.mta.info/nyct/bus/schedule/bkln/b025cur.pdf,6CBE45,FFFFFF
+B26,MTA NYCT,B26,via Halsey St / Fulton St,Downtown Brooklyn - Ridgewood,3,http://www.mta.info/nyct/bus/schedule/bkln/b026cur.pdf,006CB7,FFFFFF
+B3,MTA NYCT,B3,via Avenue U,Bensonhurst - Bergen Beach,3,http://www.mta.info/nyct/bus/schedule/bkln/b003cur.pdf,EE352E,FFFFFF
+B31,MTA NYCT,B31,via Gerrisen Av / Avenue R,Gerritsen Beach - Kings Hwy Station,3,http://www.mta.info/nyct/bus/schedule/bkln/b031cur.pdf,FAA61A,FFFFFF
+B35,MTA NYCT,B35,via Church Av / 39th St,Brownsville - Sunset Park,3,http://www.mta.info/nyct/bus/schedule/bkln/b035cur.pdf,EE352E,FFFFFF
+B36,MTA NYCT,B36,via Avenue Z / Surf Av,Sheepshead Bay - Coney Island,3,http://www.mta.info/nyct/bus/schedule/bkln/b036cur.pdf,FAA61A,FFFFFF
+B38,MTA NYCT,B38,via DeKalb & Lafayette Av,Ridgewood - Downtown Brooklyn,3,http://www.mta.info/nyct/bus/schedule/bkln/b038cur.pdf,00AEEF,FFFFFF
+B4,MTA NYCT,B4,via Bay Ridge Pkwy / 86th St / Avenue Z,Bay Ridge - Sheepshead Bay,3,http://www.mta.info/nyct/bus/schedule/bkln/b004cur.pdf,6CBE45,FFFFFF
+B41,MTA NYCT,B41,via Flatbush Av / Livingston St,Kings Plaza - Downtown Brooklyn,3,http://www.mta.info/nyct/bus/schedule/bkln/b041cur.pdf,006CB7,FFFFFF
+B42,MTA NYCT,B42,via Rockaway Pkwy,Carnarsie Pier - Rockaway Parkway Station,3,http://www.mta.info/nyct/bus/schedule/bkln/b042cur.pdf,006CB7,FFFFFF
+B43,MTA NYCT,B43,via Manhattan Av / Graham Av / Tompkins Av,Greenpoint - Lefferts Gardens,3,http://www.mta.info/nyct/bus/schedule/bkln/b043cur.pdf,EE352E,FFFFFF
+B44,MTA NYCT,B44,via Nostrand Av,Sheepshead Bay - Williamsburg,3,http://www.mta.info/nyct/bus/schedule/bkln/b044cur.pdf,B933AD,FFFFFF
+B45,MTA NYCT,B45,via St Johns Place,Downtown Brooklyn - Crown Heights,3,http://www.mta.info/nyct/bus/schedule/bkln/b045cur.pdf,EE352E,FFFFFF
+B46,MTA NYCT,B46,via Utica Av - Malcolm X Blvd,Kings Plaza - Williamsburg,3,http://www.mta.info/nyct/bus/schedule/bkln/b046cur.pdf,6CBE45,FFFFFF
+B47,MTA NYCT,B47,via Broadway / Ralph Av / Avenue U,Kings Plaza - Bedford-Stuyvesant,3,http://www.mta.info/nyct/bus/schedule/bkln/b047cur.pdf,FAA61A,FFFFFF
+B48,MTA NYCT,B48,via Lorimer St / Franklin & Classon Av,Bedford-Stuyvesant - Greenpoint,3,http://www.mta.info/nyct/bus/schedule/bkln/b048cur.pdf,FAA61A,FFFFFF
+B49,MTA NYCT,B49,via Ocean Av / Bedford & Rogers Av,Manhattan Beach - Bedford-Stuyvesant,3,http://www.mta.info/nyct/bus/schedule/bkln/b049cur.pdf,EE352E,FFFFFF
+B52,MTA NYCT,B52,via Gates Av,Downtown Brooklyn - Ridgewood,3,http://www.mta.info/nyct/bus/schedule/bkln/b052cur.pdf,EE352E,FFFFFF
+B54,MTA NYCT,B54,via Myrtle Av,Downtown Brooklyn - Ridgewood,3,http://www.mta.info/nyct/bus/schedule/bkln/b054cur.pdf,6CBE45,FFFFFF
+B57,MTA NYCT,B57,via Flushing Av,Gowanus - Maspeth,3,http://www.mta.info/nyct/bus/schedule/bkln/b057cur.pdf,EE352E,FFFFFF
+B6,MTA NYCT,B6,via Bay Pkwy / Avenue J / Flatlands Av,Bath Beach - East New York,3,http://www.mta.info/nyct/bus/schedule/bkln/b006cur.pdf,EE352E,FFFFFF
+B60,MTA NYCT,B60,via Wilson Av / Rockaway Av,Williamsburg - Carnarsie,3,http://www.mta.info/nyct/bus/schedule/bkln/b060cur.pdf,B933AD,FFFFFF
+B61,MTA NYCT,B61,via Van Brunt St / Columbia St / 9th St,Park Slope - Downtown Brooklyn,3,http://www.mta.info/nyct/bus/schedule/bkln/b061cur.pdf,6CBE45,FFFFFF
+B62,MTA NYCT,B62,via Bklyn Navy Yard / Manhattan Av / Jackson Av,Downtown Brooklyn - Long Island City,3,http://www.mta.info/nyct/bus/schedule/bkln/b062cur.pdf,00AEEF,FFFFFF
+B63,MTA NYCT,B63,via 5th Av / Atlantic Av,Bay Ridge - Cobble Hill,3,http://www.mta.info/nyct/bus/schedule/bkln/b063cur.pdf,006CB7,FFFFFF
+B64,MTA NYCT,B64,via Bay Ridge Av / Bath Av,Bay Ridge - Bensonhurst,3,http://www.mta.info/nyct/bus/schedule/bkln/b064cur.pdf,6CBE45,FFFFFF
+B65,MTA NYCT,B65,via Bergen St & Dean St,Downtown Brooklyn - Crown Heights,3,http://www.mta.info/nyct/bus/schedule/bkln/b065cur.pdf,00AEEF,FFFFFF
+B67,MTA NYCT,B67,via Flatbush Av / 7th Av / McDonald Av,Downtown Brooklyn - Kensington,3,http://www.mta.info/nyct/bus/schedule/bkln/b067cur.pdf,EE352E,FFFFFF
+B68,MTA NYCT,B68,via Coney Island Av / Brighton Beach Av,Coney Island - Windsor Terrace,3,http://www.mta.info/nyct/bus/schedule/bkln/b068cur.pdf,EE352E,FFFFFF
+B69,MTA NYCT,B69,via Vanderbilt Av / 7th Av / McDonald Av,Downtown Brooklyn - Kensington,3,http://www.mta.info/nyct/bus/schedule/bkln/b068cur.pdf,006CB7,FFFFFF
+B7,MTA NYCT,B7,via Kings Hwy / Saratoga Av,Midwood - Bedford-Stuyvesant,3,http://www.mta.info/nyct/bus/schedule/bkln/b007cur.pdf,EE352E,FFFFFF
+B70,MTA NYCT,B70,via 92nd St / 3rd Av / 8th Av,Dyker Heights - Sunset Park,3,http://www.mta.info/nyct/bus/schedule/bkln/b070cur.pdf,B933AD,FFFFFF
+B74,MTA NYCT,B74,via Mermaid Av,Sea Gate - Stillwell Av,3,http://www.mta.info/nyct/bus/schedule/bkln/b074cur.pdf,EE352E,FFFFFF
+B8,MTA NYCT,B8,via 18th Av / Foster Av / Avenue D,Dyker Heights - East Flatbush,3,http://www.mta.info/nyct/bus/schedule/bkln/b008cur.pdf,FAA61A,FFFFFF
+B82,MTA NYCT,B82,via Bay Pkwy / Kings Hwy / Flatlands Av,Coney Island - Spring Creek Towers,3,http://www.mta.info/nyct/bus/schedule/bkln/b082cur.pdf,6CBE45,FFFFFF
+B83,MTA NYCT,B83,via Van Siclen Av / Pennsylvania Av,Spring Creek - Broadway Junction,3,http://www.mta.info/nyct/bus/schedule/bkln/b083cur.pdf,EE352E,FFFFFF
+B9,MTA NYCT,B9,via 60th St / Avenue M,Bay Ridge - Kings Plaza,3,http://www.mta.info/nyct/bus/schedule/bkln/b009cur.pdf,EE352E,FFFFFF
+BX3,MTA NYCT,BX03,via University Av / W 181st St,Riverdale - George Washington Bridge,3,http://www.mta.info/nyct/bus/schedule/bronx/bx003cur.pdf,EE352E,FFFFFF
+BX4,MTA NYCT,BX4,via Westchester Av,Westchester Sq - The Hub,3,http://www.mta.info/nyct/bus/schedule/bronx/bx004cur.pdf,FAA61A,FFFFFF
+BX4A,MTA NYCT,BX4A,via Metropolitan Oval / Westchester Av,Westchester Sq - The Hub,3,http://www.mta.info/nyct/bus/schedule/bronx/bx004cur.pdf,FAA61A,FFFFFF
+BX5,MTA NYCT,BX5,via Bruckner Blvd Svc Rd / Story Av,Pelham Bay - West Farms Rd & Southern Blvd,3,http://www.mta.info/nyct/bus/schedule/bronx/bx005cur.pdf,EE352E,FFFFFF
+BX6,MTA NYCT,BX6,via E 161st St / E 163rd St,Hunts Point - Riverside Dr,3,http://www.mta.info/nyct/bus/schedule/bronx/bx006cur.pdf,EE352E,FFFFFF
+BX7,MTA NYCT,BX7,via Riverdale Av / Broadway,Riverdale - Washington Heights,3,http://www.mta.info/nyct/bus/schedule/bronx/bx007cur.pdf,EE352E,FFFFFF
+BX8,MTA NYCT,BX8,via Bronxwood Av / Williamsbridge Rd / Crosby Av,Williamsbridge - Locust Point,3,http://www.mta.info/nyct/bus/schedule/bronx/bx008cur.pdf,FAA61A,FFFFFF
+BX9,MTA NYCT,BX9,via Broadway / Kingsbridge Rd / Southern Blvd,Riverdale - West Farms Sq,3,http://www.mta.info/nyct/bus/schedule/bronx/bx009cur.pdf,FAA61A,FFFFFF
+BX1,MTA NYCT,BX1,via Grand Concourse / E 138th St,Riverdale - Mott Haven,3,http://www.mta.info/nyct/bus/schedule/bronx/bx001cur.pdf,00AEEF,FFFFFF
+BX10,MTA NYCT,BX10,via Riverdale Av / W 231st St / Jerome Av,Riverdale - Norwood,3,http://www.mta.info/nyct/bus/schedule/bronx/bx010cur.pdf,006CB7,FFFFFF
+BX11,MTA NYCT,BX11,via Claremont Pkwy / E 170th St,West Farms Rd - Southern Blvd & GW Bridge,3,http://www.mta.info/nyct/bus/schedule/bronx/bx011cur.pdf,FAA61A,FFFFFF
+BX12,MTA NYCT,BX12,via Pelham Pkwy / Fordham Rd,Pelham Pkwy - Fordham Rd,3,http://www.mta.info/nyct/bus/schedule/bronx/bx012cur.pdf,006CB7,FFFFFF
+BX12+,MTA NYCT,BX12-SBS,via Pelham Pkwy / Fordham Rd / Bay Plaza Shop Ctr,Pelham Pkwy - Fordham Rd SBS,3,http://www.mta.info/nyct/bus/schedule/bronx/bx012scur.pdf,006CB7,FFFFFF
+BX13,MTA NYCT,BX13,via Ogden Av / W 181st St,George Washington Bridge - Yankee Stadium,3,http://www.mta.info/nyct/bus/schedule/bronx/bx013cur.pdf,006CB7,FFFFFF
+BX15,MTA NYCT,BX15,via 3rd Av / 125th St,Fordham Plaza - Manhattanville,3,http://www.mta.info/nyct/bus/schedule/bronx/bx015cur.pdf,FAA61A,FFFFFF
+BX16,MTA NYCT,BX16,via E 233rd St / Nereid Av,Pelham - Norwood,3,http://www.mta.info/nyct/bus/schedule/bronx/bx016cur.pdf,00AEEF,FFFFFF
+BX17,MTA NYCT,BX17,via Crotona Av / Prospect Av,Fordham Plaza - Port Morris,3,http://www.mta.info/nyct/bus/schedule/bronx/bx017cur.pdf,006CB7,FFFFFF
+BX18,MTA NYCT,BX18,via Macombs Rd,Tremont - Morris Heights,3,http://www.mta.info/nyct/bus/schedule/bronx/bx018cur.pdf,6CBE45,FFFFFF
+BX19,MTA NYCT,BX19,via Southern Blvd / E 149th St,NY Botanical Garden - Riverbank Park,3,http://www.mta.info/nyct/bus/schedule/bronx/bx019cur.pdf,B933AD,FFFFFF
+BX2,MTA NYCT,BX2,via Grand Concourse / E 149th St,Kingsbridge Heights - Mott Haven,3,http://www.mta.info/nyct/bus/schedule/bkln/b002cur.pdf,FAA61A,FFFFFF
+BX20,MTA NYCT,BX20,via Broadway / Henry Hudson Pkwy,Riverdale - Inwood,3,http://www.mta.info/nyct/bus/schedule/bronx/bx020cur.pdf,00AEEF,FFFFFF
+BX21,MTA NYCT,BX21,via Morris Park Av / Boston Rd,Westchester Sq - Mott Haven,3,http://www.mta.info/nyct/bus/schedule/bronx/bx021cur.pdf,6CBE45,FFFFFF
+BX22,MTA NYCT,BX22,via Castle Hill Av,Bedford Park - Castle Hill,3,http://www.mta.info/nyct/bus/schedule/bronx/bx022cur.pdf,EE352E,FFFFFF
+BX24,MTA NYCT,BX24,via Country Club Loop,Pelham Bay - Country Club Loop,3,http://www.mta.info/nyct/bus/schedule/bronx/bx024cur.pdf,6CBE45,FFFFFF
+BX26,MTA NYCT,BX26,via Allerton Av,Co-op City Section 5 - Bedford Park,3,http://www.mta.info/nyct/bus/schedule/bronx/bx026cur.pdf,FAA61A,FFFFFF
+BX27,MTA NYCT,BX27,via Westchester Av / Soundview Av,Clasons Pt - West Farms Rd & Southern Blvd,3,http://www.mta.info/nyct/bus/schedule/bronx/bx027cur.pdf,00AEEF,FFFFFF
+BX28,MTA NYCT,BX28,via E Gun Hill Rd / Bartow Av,Co-op City Section 5 - Fordham Center,3,http://www.mta.info/nyct/bus/schedule/bronx/bx028cur.pdf,00AEEF,FFFFFF
+BX29,MTA NYCT,BX29,via City Island Rd / City Island Av,City Island - Co-op City Bay Plaza,3,http://www.mta.info/nyct/bus/schedule/bronx/bx029cur.pdf,00AEEF,FFFFFF
+BX30,MTA NYCT,BX30,via Boston Rd / E Gun Hill Rd,Co-op City Section 5 - Norwood,3,http://www.mta.info/nyct/bus/schedule/bronx/bx030cur.pdf,EE352E,FFFFFF
+BX31,MTA NYCT,BX31,via Eastchester Rd,Woodlawn - Westchester Sq,3,http://www.mta.info/nyct/bus/schedule/bronx/bx031cur.pdf,EE352E,FFFFFF
+BX32,MTA NYCT,BX32,via Morris Av / Jerome Av,Kingsbridge VA Hospital - Mott Haven,3,http://www.mta.info/nyct/bus/schedule/bronx/bx032cur.pdf,6CBE45,FFFFFF
+BX33,MTA NYCT,BX33,via E 138th St / W 135th St,Port Morris - Harlem,3,http://www.mta.info/nyct/bus/schedule/bronx/bx033cur.pdf,6CBE45,FFFFFF
+BX34,MTA NYCT,BX34,via Bainbridge Av,Woodlawn - Fordham Center,3,http://www.mta.info/nyct/bus/schedule/bronx/bx034cur.pdf,B933AD,FFFFFF
+BX35,MTA NYCT,BX35,via E 167th / W 181st St,West Farms Rd & Southern Blvd - GW Bridge,3,http://www.mta.info/nyct/bus/schedule/bronx/bx035cur.pdf,00AEEF,FFFFFF
+BX36,MTA NYCT,BX36,via E 174th / E 180th St,Soundview - George Washington Bridge,3,http://www.mta.info/nyct/bus/schedule/bronx/bx036cur.pdf,B933AD,FFFFFF
+BX38,MTA NYCT,BX38,via E Gun Hill Rd / Co-op City Blvd,Co-op City Bay Plaza - Norwood,3,http://www.mta.info/nyct/bus/schedule/bkln/b038cur.pdf,FAA61A,FFFFFF
+BX39,MTA NYCT,BX39,via White Plains Rd,Wakefield - Clasons Pt,3,http://www.mta.info/nyct/bus/schedule/bronx/bx039cur.pdf,FAA61A,FFFFFF
+BX40,MTA NYCT,BX40,via Tremont Av Crosstown,Throgs Neck - River Park Towers,3,http://www.mta.info/nyct/bus/schedule/bronx/bx040cur.pdf,006CB7,FFFFFF
+BX41,MTA NYCT,BX41,via Webster Av / E Gun Hill Rd,Williamsbridge - The Hub,3,http://www.mta.info/nyct/bus/schedule/bronx/bx041cur.pdf,EE352E,FFFFFF
+BX42,MTA NYCT,BX42,via Tremont Av Crosstown,Throgs Neck - River Park Towers,3,http://www.mta.info/nyct/bus/schedule/bronx/bx040cur.pdf,EE352E,FFFFFF
+BX55,MTA NYCT,BX55,via 3rd Av / Webster Av,Williamsbridge - The Hub LTD,3,http://www.mta.info/nyct/bus/schedule/bronx/bx055cur.pdf,00AEEF,FFFFFF
+M1,MTA NYCT,M1,via 5th Av / Madison Av,Harlem - East Village,3,http://www.mta.info/nyct/bus/schedule/manh/m001cur.pdf,EE352E,FFFFFF
+M2,MTA NYCT,M2,via 5th Av / Madison Av / AC Powell Blvd,Washington Heights - East Village,3,http://www.mta.info/nyct/bus/schedule/manh/m002cur.pdf,B933AD,FFFFFF
+M3,MTA NYCT,M3,via 5th Av / Madison Av / St Nicholas Blvd,Fort George - East Village,3,http://www.mta.info/nyct/bus/schedule/manh/m003cur.pdf,B933AD,FFFFFF
+M4,MTA NYCT,M4,via 5th Av / Madison Av / Broadway,The Cloisters - Penn Station,3,http://www.mta.info/nyct/bus/schedule/manh/m004cur.pdf,00AEEF,FFFFFF
+M5,MTA NYCT,M5,via 5th Av / Av of Americas / Riverside Dr,George Washington Bridge - South Ferry,3,http://www.mta.info/nyct/bus/schedule/manh/m005cur.pdf,EE352E,FFFFFF
+M7,MTA NYCT,M7,via Columbus / Amsterdam / 6 & 7 Av / Bway,Harlem - 14th Street,3,http://www.mta.info/nyct/bus/schedule/manh/m007cur.pdf,00AEEF,FFFFFF
+M8,MTA NYCT,M8,via 8 & 9 St Crosstown,West Village - East Village LTD,3,http://www.mta.info/nyct/bus/schedule/manh/m008cur.pdf,00AEEF,FFFFFF
+M9,MTA NYCT,M9,via Avenue C / E Broadway,Peter Cooper Village - City Hall,3,http://www.mta.info/nyct/bus/schedule/manh/m009cur.pdf,B933AD,FFFFFF
+M10,MTA NYCT,M10,via Central Park West / Frederick Douglass Blvd,Harlem - Columbus Circle,3,http://www.mta.info/nyct/bus/schedule/manh/m010cur.pdf,006CB7,FFFFFF
+M100,MTA NYCT,M100,via Broadway / Amsterdam Av / 125th St,Inwood - East Harlem,3,http://www.mta.info/nyct/bus/schedule/manh/m100cur.pdf,00AEEF,FFFFFF
+M101,MTA NYCT,M101,via Third Av / Lexington Av / Amsterdam Av,East Village - Harlem,3,http://www.mta.info/nyct/bus/schedule/manh/m101cur.pdf,FAA61A,FFFFFF
+M102,MTA NYCT,M102,via 3rd Av / Lexington Av / Lenox Av,Harlem - East Village,3,http://www.mta.info/nyct/bus/schedule/manh/m102cur.pdf,FAA61A,FFFFFF
+M103,MTA NYCT,M103,via 3rd Av / Lexington Av,East Harlem - City Hall,3,http://www.mta.info/nyct/bus/schedule/manh/m103cur.pdf,B933AD,FFFFFF
+M104,MTA NYCT,M104,via Broadway / 42nd St,West Harlem - Times Square,3,http://www.mta.info/nyct/bus/schedule/manh/m104cur.pdf,B933AD,FFFFFF
+M106,MTA NYCT,M106,via 96th St / E 106th St Crosstown,East Harlem - West Side,3,http://www.mta.info/nyct/bus/schedule/manh/m106cur.pdf,6CBE45,FFFFFF
+M11,MTA NYCT,M11,via 9th - Columbus Av / 10th - Amsterdam Av,Riverbank Park & Harlem - West Village,3,http://www.mta.info/nyct/bus/schedule/manh/m011cur.pdf,FAA61A,FFFFFF
+M116,MTA NYCT,M116,via 116th St Crosstown,West Side - East Harlem,3,http://www.mta.info/nyct/bus/schedule/manh/m116cur.pdf,6CBE45,FFFFFF
+M14AD,MTA NYCT,M14AD,via 14th St Crosstown,Lower East Side - Chelsea Piers / Abingdon Sq,3,http://www.mta.info/nyct/bus/schedule/manh/m014cur.pdf,6CBE45,FFFFFF
+M15,MTA NYCT,M15,via 1st Av / 2nd Av,East Harlem - South Ferry,3,http://www.mta.info/nyct/bus/schedule/manh/m015cur.pdf,006CB7,FFFFFF
+M15+,MTA NYCT,M15-SBS,via 1st Av / 2nd Av (Select Bus Service),East Harlem - South Ferry SBS,3,http://www.mta.info/nyct/bus/schedule/manh/m015scur.pdf,006CB7,FFFFFF
+M20,MTA NYCT,M20,via 7th Av / 8th Av / Battery Park City,Lincoln Center - South Ferry,3,http://www.mta.info/nyct/bus/schedule/manh/m020cur.pdf,EE352E,FFFFFF
+M21,MTA NYCT,M21,via Houston St / Avenue C,Lower East Side - West Village LTD,3,http://www.mta.info/nyct/bus/schedule/manh/m021cur.pdf,FAA61A,FFFFFF
+M22,MTA NYCT,M22,via Madison St / Chambers St,Lower East Side - Battery Park City,3,http://www.mta.info/nyct/bus/schedule/manh/m022cur.pdf,00AEEF,FFFFFF
+M23,MTA NYCT,M23,via 23rd St Crosstown,Chelsea Piers - East Side,3,http://www.mta.info/nyct/bus/schedule/manh/m023cur.pdf,6CBE45,FFFFFF
+M31,MTA NYCT,M31,via 57th St / York Av,Yorkville - Clinton,3,http://www.mta.info/nyct/bus/schedule/manh/m031cur.pdf,B933AD,FFFFFF
+M34+,MTA NYCT,M34-SBS,Javits Ctr via 34th St Crosstown (Select Bus Service),East Side - Javits Center SBS,3,http://www.mta.info/nyct/bus/schedule/manh/m034scur.pdf,006CB7,FFFFFF
+M34A+,MTA NYCT,M34A-SBS,Port Authority via 34th St Crosstown (Select Bus Service),Waterside - Port Authority Terminal SBS,3,http://www.mta.info/nyct/bus/schedule/manh/m034scur.pdf,006CB7,FFFFFF
+M35,MTA NYCT,M35,via Randall's Island / RFK Bridge,Ward's Island - East Harlem,3,http://www.mta.info/nyct/bus/schedule/manh/m035cur.pdf,FAA61A,FFFFFF
+M42,MTA NYCT,M42,via 42nd St Crosstown,United Nations - W 42 St Pier,3,http://www.mta.info/nyct/bus/schedule/manh/m042cur.pdf,EE352E,FFFFFF
+M50,MTA NYCT,M50,via 49th St / 50th St Crosstown,W 42 St Pier - East Side,3,http://www.mta.info/nyct/bus/schedule/manh/m050cur.pdf,6CBE45,FFFFFF
+M57,MTA NYCT,M57,via 57th St Crosstown,East Side - West Side,3,http://www.mta.info/nyct/bus/schedule/manh/m057cur.pdf,00AEEF,FFFFFF
+M60,MTA NYCT,M60,via 125th St / Astoria Blvd,LaGuardia Airport - West Side,3,http://www.mta.info/nyct/bus/schedule/manh/m060cur.pdf,EE352E,FFFFFF
+M66,MTA NYCT,M66,via 65th & 68th St (East) / 67th & 66th St (West),East Side - Lincoln Center,3,http://www.mta.info/nyct/bus/schedule/manh/m066cur.pdf,FAA61A,FFFFFF
+M72,MTA NYCT,M72,via 72nd St Crosstown,East Side - West Side,3,http://www.mta.info/nyct/bus/schedule/manh/m072cur.pdf,6CBE45,FFFFFF
+M79,MTA NYCT,M79,via 79th St Crosstown,Yorkville - West Side,3,http://www.mta.info/nyct/bus/schedule/manh/m079cur.pdf,EE352E,FFFFFF
+M86,MTA NYCT,M86,via 86th St Crosstown,Yorkville - West Side,3,http://www.mta.info/nyct/bus/schedule/manh/m086cur.pdf,FAA61A,FFFFFF
+M96,MTA NYCT,M96,via 96th St Crosstown,East Side - West Side,3,http://www.mta.info/nyct/bus/schedule/manh/m096cur.pdf,6CBE45,FFFFFF
+M98,MTA NYCT,M98,via Harlem River Dr / Lexington / 3rd,Washington Heights - Upper East Side,3,http://www.mta.info/nyct/bus/schedule/manh/m098cur.pdf,EE352E,FFFFFF
+Q1,MTA NYCT,Q1,via Springfield Blvd / Braddock Av / Hillside Av,Queens Village / Bellerose - Jamaica,3,http://www.mta.info/nyct/bus/schedule/queens/q001cur.pdf,FAA61A,FFFFFF
+Q2,MTA NYCT,Q2,via Hollis Av / Belmont Park,Queens Village - Jamaica,3,http://www.mta.info/nyct/bus/schedule/queens/q002cur.pdf,6CBE45,FFFFFF
+Q3,MTA NYCT,Q3,via Farmers Blvd / Hillside Av,Jamaica - JFK Airport,3,http://www.mta.info/nyct/bus/schedule/queens/q003cur.pdf,00AEEF,FFFFFF
+Q4,MTA NYCT,Q4,via Linden Blvd / Merrick Blvd,Cambria Heights - Jamaica,3,http://www.mta.info/nyct/bus/schedule/queens/q004cur.pdf,EE352E,FFFFFF
+Q5,MTA NYCT,Q5,via Merrick Blvd / Green Acres Shop Mall,Rosedale - Jamaica,3,http://www.mta.info/nyct/bus/schedule/queens/q005cur.pdf,EE352E,FFFFFF
+Q12,MTA NYCT,Q12,via Sanford Av / Northern Blvd,Little Neck - Flushing,3,http://www.mta.info/nyct/bus/schedule/queens/q012cur.pdf,EE352E,FFFFFF
+Q13,MTA NYCT,Q13,via Northern Blvd / Bell Blvd,Fort Totten - Flushing,3,http://www.mta.info/nyct/bus/schedule/queens/q013cur.pdf,EE352E,FFFFFF
+Q15,MTA NYCT,Q15,via 150th St / 154th St,Flushing - Beechhurst,3,http://www.mta.info/nyct/bus/schedule/queens/q015cur.pdf,FAA61A,FFFFFF
+Q15A,MTA NYCT,Q15A,via 150th St / Whitestone,Flushing - Beechhurst / Whitestone,3,http://www.mta.info/nyct/bus/schedule/queens/q015cur.pdf,FAA61A,FFFFFF
+Q16,MTA NYCT,Q16,via Bayside Av / Willets Point Blvd,Fort Totten - Flushing,3,http://www.mta.info/nyct/bus/schedule/queens/q016cur.pdf,EE352E,FFFFFF
+Q17,MTA NYCT,Q17,via Kissena Blvd / Horace Harding Expwy / 188th St,Flushing - Jamaica,3,http://www.mta.info/nyct/bus/schedule/queens/q017cur.pdf,EE352E,FFFFFF
+Q20A,MTA NYCT,Q20A,via Main St / College Point Blvd,College Point - Jamaica,3,http://www.mta.info/nyct/bus/schedule/queens/q044cur.pdf,006CB7,FFFFFF
+Q20B,MTA NYCT,Q20B,via Main St / College Point Blvd,College Point - Jamaica LTD,3,http://www.mta.info/nyct/bus/schedule/queens/q044cur.pdf,006CB7,FFFFFF
+Q24,MTA NYCT,Q24,via Atlantic Av,Broadway Junction - Jamaica,3,http://www.mta.info/nyct/bus/schedule/queens/q024cur.pdf,00AEEF,FFFFFF
+Q26,MTA NYCT,Q26,via Hollis Court Blvd / 46th Av,Fresh Meadows - Flushing (Part-time),3,http://www.mta.info/nyct/bus/schedule/queens/q026cur.pdf,6CBE45,FFFFFF
+Q27,MTA NYCT,Q27,via Springfield Blvd / Rocky Hill Rd / 46th Av,Cambria Heights - Flushing,3,http://www.mta.info/nyct/bus/schedule/queens/q027cur.pdf,EE352E,FFFFFF
+Q28,MTA NYCT,Q28,via Northern Blvd / 32nd Av,Bayside - Flushing,3,http://www.mta.info/nyct/bus/schedule/queens/q028cur.pdf,EE352E,FFFFFF
+Q30,MTA NYCT,Q30,via Horace Harding Expwy / Utopia Pkwy,Little Neck - Jamaica,3,http://www.mta.info/nyct/bus/schedule/queens/q030cur.pdf,FAA61A,FFFFFF
+Q31,MTA NYCT,Q31,via Bell Blvd / Utopia Pkwy,Bayside - Jamaica LTD,3,http://www.mta.info/nyct/bus/schedule/queens/q031cur.pdf,FAA61A,FFFFFF
+Q32,MTA NYCT,Q32,via Roosevelt Av / Fifth Av / Madison Av,Jackson Heights - Penn Station,3,http://www.mta.info/nyct/bus/schedule/queens/q032cur.pdf,00AEEF,FFFFFF
+Q36,MTA NYCT,Q36,via Jamaica Av / Hillside Av,Floral Park - Jamaica,3,http://www.mta.info/nyct/bus/schedule/queens/q036cur.pdf,FAA61A,FFFFFF
+Q42,MTA NYCT,Q42,via 174th St / Liberty Av / Archer Av,St. Albans - Jamaica (Part-time),3,http://www.mta.info/nyct/bus/schedule/queens/q042cur.pdf,00AEEF,FFFFFF
+Q43,MTA NYCT,Q43,via Hillside Av / Sutphin Blvd,Floral Park - Jamaica,3,http://www.mta.info/nyct/bus/schedule/queens/q043cur.pdf,EE352E,FFFFFF
+Q44,MTA NYCT,Q44,via Main St / Cross Bronx Svc Rd (Q20 Limited),Bronx Zoo - Jamaica,3,http://www.mta.info/nyct/bus/schedule/queens/q044cur.pdf,EE352E,FFFFFF
+Q46,MTA NYCT,Q46,via Union Turnpike,Glen Oaks - Kew Gardens,3,http://www.mta.info/nyct/bus/schedule/queens/q046cur.pdf,EE352E,FFFFFF
+Q48,MTA NYCT,Q48,via Roosevelt Av / 108th St / Ditmars Blvd,Flushing - LaGuardia Airport,3,http://www.mta.info/nyct/bus/schedule/queens/q048cur.pdf,006CB7,FFFFFF
+Q54,MTA NYCT,Q54,via Jamaica Av / Metropolitan Av,Williamsburg - Jamaica,3,http://www.mta.info/nyct/bus/schedule/queens/q054cur.pdf,B933AD,FFFFFF
+Q55,MTA NYCT,Q55,via Myrtle Av,Ridgewood - Richmond Hill,3,http://www.mta.info/nyct/bus/schedule/queens/q055cur.pdf,EE352E,FFFFFF
+Q56,MTA NYCT,Q56,via Jamaica Av,Broadway Junction - Jamaica,3,http://www.mta.info/nyct/bus/schedule/queens/q056cur.pdf,B933AD,FFFFFF
+Q58,MTA NYCT,Q58,via Fresh Pond Rd / Corona Av / College Pt Blvd,Ridgewood - Flushing,3,http://www.mta.info/nyct/bus/schedule/queens/q058cur.pdf,6CBE45,FFFFFF
+Q59,MTA NYCT,Q59,via Grand St / Grand Av / Queens Blvd,Williamsburg - Rego Park,3,http://www.mta.info/nyct/bus/schedule/queens/q059cur.pdf,FAA61A,FFFFFF
+Q76,MTA NYCT,Q76,via Francis Lewis Blvd / Hillside Av,College Point - Jamaica,3,http://www.mta.info/nyct/bus/schedule/queens/q076cur.pdf,6CBE45,FFFFFF
+Q77,MTA NYCT,Q77,via Springfield / Francis Lewis / Hillside Av,Laurelton - Jamaica,3,http://www.mta.info/nyct/bus/schedule/queens/q077cur.pdf,FAA61A,FFFFFF
+Q83,MTA NYCT,Q83,via Liberty Av / Murdock Av,Queens Village - Jamaica,3,http://www.mta.info/nyct/bus/schedule/queens/q083cur.pdf,6CBE45,FFFFFF
+Q84,MTA NYCT,Q84,via Merrick Blvd / 120th Av,Laurelton - Jamaica,3,http://www.mta.info/nyct/bus/schedule/queens/q084cur.pdf,B933AD,FFFFFF
+Q85,MTA NYCT,Q85,via Merrick Blvd / Conduit Av,Rosedale - Jamaica,3,http://www.mta.info/nyct/bus/schedule/queens/q085cur.pdf,EE352E,FFFFFF
+Q88,MTA NYCT,Q88,via Horace Harding Expwy / 73rd Av / Springfield Blvd,Elmhurst - Queens Village,3,http://www.mta.info/nyct/bus/schedule/queens/q088cur.pdf,FAA61A,FFFFFF
+S40,MTA NYCT,S40,via Richmond Terrace,St. George - Goethals Rd North,3,http://www.mta.info/nyct/bus/schedule/staten/s040cur.pdf,B933AD,FFFFFF
+S42,MTA NYCT,S42,via St Marks Pl / Jersey St,St. George - Clyde Place,3,http://www.mta.info/nyct/bus/schedule/staten/s052cur.pdf,00AEEF,FFFFFF
+S44,MTA NYCT,S44,via Richmond Av,St. George - Staten Island Mall,3,http://www.mta.info/nyct/bus/schedule/staten/s044cur.pdf,FAA61A,FFFFFF
+S46,MTA NYCT,S46,via Castleton Av,St. George - West Shore Plaza,3,http://www.mta.info/nyct/bus/schedule/staten/s046cur.pdf,006CB7,FFFFFF
+S48,MTA NYCT,S48,via Forest Av,St. George - Mariners Harbor,3,http://www.mta.info/nyct/bus/schedule/staten/s048cur.pdf,EE352E,FFFFFF
+S51,MTA NYCT,S51,via Bay St / Father Capodanno Blvd,St. George - West Shore Plaza,3,http://www.mta.info/nyct/bus/schedule/staten/s051cur.pdf,006CB7,FFFFFF
+S52,MTA NYCT,S52,via Tompkins Av / Cebra Av / Jersey St ,St. George - Staten Island Univ. Hospital,3,http://www.mta.info/nyct/bus/schedule/staten/s052cur.pdf,B933AD,FFFFFF
+S53,MTA NYCT,S53,via Verrazano-Narrows Bridge / Clove Rd,Port Richmond - Bay Ridge,3,http://www.mta.info/nyct/bus/schedule/staten/s053cur.pdf,EE352E,FFFFFF
+S54,MTA NYCT,S54,via Manor Rd,West New Brighton - Eltingville,3,http://www.mta.info/nyct/bus/schedule/staten/s054cur.pdf,FAA61A,FFFFFF
+S55,MTA NYCT,S55,via Bloomingdale Rd / Annadale Rd / Richmond Av,Rossville - Staten Island Mall,3,http://www.mta.info/nyct/bus/schedule/staten/s055cur.pdf,FAA61A,FFFFFF
+S56,MTA NYCT,S56,via Richmond Av / Arthur Kill Rd / Foster Rd,Huguenot - Staten Island Mall,3,http://www.mta.info/nyct/bus/schedule/staten/s056cur.pdf,6CBE45,FFFFFF
+S57,MTA NYCT,S57,via Rockland Av / Brielle Av / Bradley Av,Port Richmond - New Dorp,3,http://www.mta.info/nyct/bus/schedule/staten/s057cur.pdf,6CBE45,FFFFFF
+S59,MTA NYCT,S59,via Richmond Av,Port Richmond - Tottenville,3,http://www.mta.info/nyct/bus/schedule/staten/s059cur.pdf,EE352E,FFFFFF
+S61,MTA NYCT,S61,via Victory Blvd / Bradley Av,St. George - Staten Island Mall,3,http://www.mta.info/nyct/bus/schedule/staten/s061cur.pdf,EE352E,FFFFFF
+S62,MTA NYCT,S62,via Victory Blvd,St. George - Travis,3,http://www.mta.info/nyct/bus/schedule/staten/s062cur.pdf,B933AD,FFFFFF
+S66,MTA NYCT,S66,via Victory Blvd / Jewett Av,St. George - Port Richmond,3,http://www.mta.info/nyct/bus/schedule/staten/s066cur.pdf,6CBE45,FFFFFF
+S74,MTA NYCT,S74,via Richmond Rd / Arthur Kill Rd,St. George - Bricktown Mall,3,http://www.mta.info/nyct/bus/schedule/staten/s074cur.pdf,EE352E,FFFFFF
+S76,MTA NYCT,S76,via Richmond Rd / New Dorp Ln,St. George - Oakwood,3,http://www.mta.info/nyct/bus/schedule/staten/s076cur.pdf,B933AD,FFFFFF
+S78,MTA NYCT,S78,via Hylan Blvd,St. George - Bricktown Mall,3,http://www.mta.info/nyct/bus/schedule/staten/s078cur.pdf,FAA61A,FFFFFF
+S79,MTA NYCT,S79,via Verrazano-Narrows Bridge / Hylan Blvd,Staten Island Mall - Bay Ridge,3,http://www.mta.info/nyct/bus/schedule/staten/s079cur.pdf,B933AD,FFFFFF
+S81,MTA NYCT,S81,via Bay St / Father Capodanno Blvd (S51 Limited),St. George - Grant City LTD,3,http://www.mta.info/nyct/bus/schedule/staten/s051cur.pdf,006CB7,FFFFFF
+S84,MTA NYCT,S84,via Richmond Rd / Arthur Kill Rd (S74 Limited),St. George - Bricktown Mall LTD,3,http://www.mta.info/nyct/bus/schedule/staten/s074cur.pdf,EE352E,FFFFFF
+S86,MTA NYCT,S86,via Richmond Rd / New Dorp Ln (S76 Limited),St. George - Oakwood LTD,3,http://www.mta.info/nyct/bus/schedule/staten/s076cur.pdf,B933AD,FFFFFF
+S89,MTA NYCT,S89,via Richmond Av (S59 Limited),Eltingville - Bayonne LTD,3,http://www.mta.info/nyct/bus/schedule/staten/s089cur.pdf,EE352E,FFFFFF
+S90,MTA NYCT,S90,via Richmond Terrace (S40 Limited),St. George - Goethals Rd North LTD,3,http://www.mta.info/nyct/bus/schedule/staten/s040cur.pdf,B933AD,FFFFFF
+S91,MTA NYCT,S91,via Victory Blvd / Bradley Av (S61 Limited),St. George - Staten Island Mall LTD,3,http://www.mta.info/nyct/bus/schedule/staten/s061cur.pdf,EE352E,FFFFFF
+S92,MTA NYCT,S92,via Victory Blvd (S62 Limited),St. George - Travis LTD,3,http://www.mta.info/nyct/bus/schedule/staten/s062cur.pdf,B933AD,FFFFFF
+S93,MTA NYCT,S93,via Verrazano-Narrows / Victory,College of Staten Island - Bay Ridge LTD,3,http://www.mta.info/nyct/bus/schedule/staten/s093cur.pdf,EE352E,FFFFFF
+S94,MTA NYCT,S94,via Richmond Av (S44 Limited),St. George - Staten Island Mall LTD,3,http://www.mta.info/nyct/bus/schedule/staten/s044cur.pdf,FAA61A,FFFFFF
+S96,MTA NYCT,S96,via Castleton Av (S46 Limited),St. George - West Shore Plaza LTD,3,http://www.mta.info/nyct/bus/schedule/staten/s046cur.pdf,006CB7,FFFFFF
+S98,MTA NYCT,S98,via Forest Av (S48 Limited),St. George - Mariners Harbor LTD,3,http://www.mta.info/nyct/bus/schedule/staten/s048cur.pdf,EE352E,FFFFFF
+X1,MTA NYCT,X1,via Hylan Blvd / Richmond Av,Staten Island - Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x001cur.pdf,00933C,FFFFFF
+X10B,MTA NYCT,X10B,via Richmond Av / Gannon Av,Staten Island - Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x010cur.pdf,00933C,FFFFFF
+X10,MTA NYCT,X10,via Richmond Av / Gannon Av,Staten Island - Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x010cur.pdf,00933C,FFFFFF
+X11,MTA NYCT,X11,via Victory Blvd / Gannon Av,Staten Island - Lower Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x010cur.pdf,00933C,FFFFFF
+X12,MTA NYCT,X12,via Watchogue Rd / Forest Av / South Av,Staten Island - Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x012cur.pdf,00933C,FFFFFF
+X14,MTA NYCT,X14,via Port Richmond Av / Forest Av / Narrows Rd,Staten Island - Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x014cur.pdf,00933C,FFFFFF
+X15,MTA NYCT,X15,via Richmond Rd / Arthur Kill Rd,Staten Island - Lower Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x015cur.pdf,00933C,FFFFFF
+X17,MTA NYCT,X17,via Richmond Av / Arden Av / Huguenot Av,Staten Island - Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x017cur.pdf,00933C,FFFFFF
+X17A,MTA NYCT,X17A,via Richmond Av / Annandale Rd,Staten Island - Lower Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x017cur.pdf,00933C,FFFFFF
+X17J,MTA NYCT,X17J,via Richmond Av / Arden Av / Huguenot Av,Staten Island - Midtown Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x017cur.pdf,00933C,FFFFFF
+X19,MTA NYCT,X19,via Huguenot Av / Arden Av / W Shore Expwy,Staten Island - Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x017cur.pdf,00933C,FFFFFF
+X2,MTA NYCT,X2,via Hylan Blvd,Staten Island - Midtown Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x001cur.pdf,00933C,FFFFFF
+X22,MTA NYCT,X22,via Bloomingdale Rd / Amboy Rd,Staten Island - Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x022cur.pdf,00933C,FFFFFF
+X22A,MTA NYCT,X22A,via Outerbridge Park & Ride / West Shore Pkwy,Staten Island - Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x022cur.pdf,00933C,FFFFFF
+X27,MTA NYCT,X27,via Shore Rd,Bay Ridge - Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x027cur.pdf,00933C,FFFFFF
+X28,MTA NYCT,X28,via Surf Av / Cropsey Av,Sea Gate / Bensonhurst - Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x027cur.pdf,00933C,FFFFFF
+X3,MTA NYCT,X3,via Hylan Blvd,Staten Island - Lower Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x001cur.pdf,00933C,FFFFFF
+X30,MTA NYCT,X30,via Forest Av / Victory Blvd,Staten Island - Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x030cur.pdf,00933C,FFFFFF
+X31,MTA NYCT,X31,via Travis Av / Forest Hill Rd,Staten Island - Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x031cur.pdf,00933C,FFFFFF
+X37,MTA NYCT,X37,via Shore Rd,Bay Ridge - Midtown Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x027cur.pdf,00933C,FFFFFF
+X38,MTA NYCT,X38,via Surf Av / Cropsey Av,Sea Gate / Bensonhurst - Midtown Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x027cur.pdf,00933C,FFFFFF
+X4,MTA NYCT,X4,via Richmond Av / Hylan Blvd,Staten Island - Lower Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x001cur.pdf,00933C,FFFFFF
+X42,MTA NYCT,X42,via Watchogue Rd / Forest Av / South Av,Staten Island - Midtown Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x012cur.pdf,00933C,FFFFFF
+X5,MTA NYCT,X5,via Richmond Av / Hylan Blvd,Staten Island - Midtown Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x001cur.pdf,00933C,FFFFFF
+X63,MTA NYCT,X63,via Merrick Bl / Francis Lewis Bl,Rosedale - Midtown Manhattan Express,3,http://mta.info/nyct/bus/schedule/xpress/x063cur.pdf,00933C,FFFFFF
+X64,MTA NYCT,X64,via Linden Bl / Farmers Bl / Liberty Av,Cambria Heights - Midtown Manhattan Express,3,http://mta.info/nyct/bus/schedule/xpress/x064cur.pdf,00933C,FFFFFF
+X68,MTA NYCT,X68,via Hillside Av / Queens Bl,Floral Park - Midtown Manhattan Express,3,http://mta.info/nyct/bus/schedule/xpress/x068cur.pdf,00933C,FFFFFF
+X7,MTA NYCT,X7,via Giffords Ln / Nelson Av / Hylan Blvd,Staten Island - Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x001cur.pdf,00933C,FFFFFF
+X8,MTA NYCT,X8,via Giffords Ln / Nelson Av / Hylan Blvd,Staten Island - Lower Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x001cur.pdf,00933C,FFFFFF
+X9,MTA NYCT,X9,via Hylan Blvd,Staten Island - Manhattan Express,3,http://www.mta.info/nyct/bus/schedule/xpress/x001cur.pdf,00933C,FFFFFF
