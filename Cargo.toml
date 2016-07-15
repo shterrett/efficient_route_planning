@@ -4,8 +4,8 @@ version = "0.1.0"
 authors = ["stuart"]
 
 [dependencies]
+time = "0.1"
 xml-rs = "0.3"
 lazy_static = "0.1.*"
-time="0.1"
 rand = "0.3"
 csv = "0.14"

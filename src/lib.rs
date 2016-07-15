@@ -3,6 +3,7 @@
 extern crate lazy_static;
 
 extern crate rand;
+extern crate time;
 
 pub mod pathfinder;
 pub mod road_weights;
