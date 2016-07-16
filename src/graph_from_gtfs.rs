@@ -11,10 +11,10 @@ type ServiceId = String;
 type TripId = String;
 type StopId = String;
 
-pub type GTFS_ID = (String,
-                    i64,
-                    &'static str,
-                    Option<String>);
+pub type GTFS_ID = (String,          // stop id
+                    i64,             // time
+                    &'static str,    // type
+                    Option<String>); // trip id (None for transfer)
 impl GraphKey for GTFS_ID {}
 
 const FIVE_MINUTES: i64 = 5 * 60;
@@ -240,6 +240,15 @@ mod test {
         assert_eq!(stops, expected);
     }
 
+    fn to_node_id(data: (&str, &str, &str, Option<&str>)) -> GTFS_ID {
+        let (id, t, stop_type, trip) = data;
+
+        (id.to_string(),
+         strptime(t, "%T").unwrap().to_timespec().sec,
+         stop_type,
+         trip.map(|n| n.to_string()))
+    }
+
     #[test]
     fn build_transit_graph_with_valid_nodes() {
         let nodes = vec![("A", "06:00:00", "arrival", Some("r1")),
@@ -344,11 +353,7 @@ mod test {
                     ];
 
         let expected_node_ids = nodes.into_iter()
-                                     .map(|(id, t, stop_type, trip)|
-                                          (id.to_string(),
-                                           strptime(t, "%T").unwrap().to_timespec().sec,
-                                           stop_type,
-                                           trip.map(|n| n.to_string())))
+                                     .map(|data| to_node_id(data))
                                      .collect::<HashSet<GTFS_ID>>();
 
         let graph = build_graph_from_gtfs("data/gtfs_example/", "wednesday");
@@ -357,5 +362,141 @@ mod test {
                                 .iter()
                                 .map(|&node| node.id.clone())
                                 .collect::<HashSet<GTFS_ID>>();
+    }
+
+    #[test]
+    fn build_transit_graph_with_edges_within_trip() {
+        let edges = vec![
+            (("A", "06:15:00", "departure", Some("g1")),
+             ("C", "06:45:00", "arrival", Some("g1")),
+             30),
+            (("C", "06:45:00", "arrival", Some("g1")),
+             ("C", "06:45:00", "departure", Some("g1")),
+             0),
+            (("C", "06:45:00", "arrival", Some("g1")),
+             ("C", "06:50:00", "transfer", None),
+             5),
+            (("C", "06:45:00", "departure", Some("g1")),
+             ("D", "07:00:00", "arrival", Some("g1")),
+             15),
+            (("D", "07:00:00", "arrival", Some("g1")),
+             ("D", "07:00:00", "departure", Some("g1")),
+             0),
+            (("D", "07:00:00", "arrival", Some("g1")),
+             ("D", "07:05:00", "transfer", None),
+             5),
+            (("D", "07:00:00", "departure", Some("g1")),
+             ("E", "07:30:00", "arrival", Some("g1")),
+             30),
+            (("E", "07:30:00", "arrival", Some("g1")),
+             ("E", "07:30:00", "departure", Some("g1")),
+             0),
+            (("E", "07:30:00", "arrival", Some("g1")),
+             ("E", "07:35:00", "transfer", None),
+             30),
+            (("E", "07:30:00", "departure", Some("g1")),
+             ("F", "07:40:00", "arrival", Some("g1")),
+             10),
+            (("F", "07:40:00", "arrival", Some("g1")),
+             ("F", "07:40:00", "departure", Some("g1")),
+             0),
+            (("F", "07:40:00", "arrival", Some("g1")),
+             ("F", "07:45:00", "transfer", None),
+             5)];
+
+        let mut graph = build_graph_from_gtfs("data/gtfs_example/", "wednesday");
+
+        for edge in edges {
+            let from = to_node_id(edge.0);
+            let to = to_node_id(edge.1);
+            let cost = edge.2;
+
+            let actual_edge = graph.get_mut_edge(from, to);
+            assert!(actual_edge.is_some());
+            assert_eq!(actual_edge.map(|e| e.cost), Some(cost * 60));
+        }
+    }
+
+    #[test]
+    #[skip]
+    fn attaches_transfer_nodes() {
+        let transfer_edges = vec![
+            // arrival -> transfer
+            (("E", "06:50:00", "arrival", Some("r1")),
+             ("E", "06:55:00", "transfer", None),
+             5),
+            (("E", "07:50:00", "arrival", Some("r2")),
+             ("E", "07:55:00", "transfer", None),
+             5),
+            (("E", "08:50:00", "arrival", Some("r2")),
+             ("E", "08:55:00", "transfer", None),
+             5),
+            (("E", "07:30:00", "arrival", Some("g1")),
+             ("E", "07:35:00", "transfer", None),
+             5),
+            (("E", "08:00:00", "arrival", Some("g2")),
+             ("E", "08:05:00", "transfer", None),
+             5),
+            (("E", "08:30:00", "arrival", Some("g3")),
+             ("E", "08:35:00", "transfer", None),
+             5),
+            (("E", "09:00:00", "arrival", Some("g4")),
+             ("E", "09:05:00", "transfer", None),
+             5),
+            (("E", "09:30:00", "arrival", Some("g5")),
+             ("E", "09:35:00", "transfer", None),
+             5),
+            // transfer -> transfer
+            (("E", "06:55:00", "transfer", None),
+             ("E", "07:35:00", "transfer", None),
+             40),
+            (("E", "07:35:00", "transfer", None),
+             ("E", "07:55:00", "transfer", None),
+             20),
+            (("E", "07:55:00", "transfer", None),
+             ("E", "08:05:00", "transfer", None),
+             10),
+            (("E", "08:05:00", "transfer", None),
+             ("E", "08:35:00", "transfer", None),
+             30),
+            (("E", "08:35:00", "transfer", None),
+             ("E", "08:55:00", "transfer", None),
+             20),
+            (("E", "08:55:00", "transfer", None),
+             ("E", "09:05:00", "transfer", None),
+             10),
+            (("E", "09:05:00", "transfer", None),
+             ("E", "09:35:00", "transfer", None),
+             30)
+            // transfer -> departure
+            (("E", "06:55:00", "transfer", None),
+             ("E", "07:30:00", "departure", Some("g1")),
+             35),
+            (("E", "07:35:00", "transfer", None),
+             ("E", "07:50:00", "departure", Some("r2")),
+             15),
+            (("E", "07:55:00", "transfer", None),
+             ("E", "08:00:00", "departure", Some("g2")),
+             5),
+            (("E", "08:05:00", "transfer", None),
+             ("E", "08:30:00", "departure", Some("g3")),
+             25),
+            (("E", "08:35:00", "transfer", None),
+             ("E", "08:50:00", "departure", Some("r3")),
+             15),
+            (("E", "08:55:00", "transfer", None),
+             ("E", "09:00:00", "departure", Some("g4")),
+             5),
+        ];
+
+        for edge in edges {
+            let from = to_node_id(edge.0);
+            let to = to_node_id(edge.1);
+            let cost = edge.2;
+
+            let actual_edge = graph.get_mut_edge(from, to);
+            assert!(actual_edge.is_some());
+            assert_eq!(actual_edge.map(|e| e.cost), Some(cost * 60));
+        }
     }
 }
