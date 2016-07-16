@@ -117,15 +117,64 @@ fn build_trip_edges(graph: &mut Graph<GtfsId>) {
         for adj_nodes in ns.windows(2) {
             let from = adj_nodes[0].clone();
             let to = adj_nodes[1].clone();
+            let edge_weight = to.1 - from.1;
             graph.add_edge(edge_id(&from, &to),
-                           from.clone(),
-                           to.clone(),
-                           to.1 - from.1);
+                           from,
+                           to,
+                           edge_weight);
         }
     }
 }
 
 fn link_transfer_nodes(graph: &mut Graph<GtfsId>) {
+    let mut stop_nodes = HashMap::new();
+    for node in graph.all_nodes().iter().filter(|n| n.id.2 != "arrival") {
+        let mut nodes_for_stop = stop_nodes.entry(node.id.0.clone()).or_insert(Vec::new());
+        nodes_for_stop.push(node.id.clone());
+    }
+
+    for (_, nodes) in stop_nodes.into_iter() {
+        let (mut transfers,
+             mut departures): (Vec<GtfsId>,
+                               Vec<GtfsId>) = nodes.into_iter()
+                                                   .partition(|n| n.2 == "transfer");
+
+        transfers.sort_by(|a, b| a.1.cmp(&b.1));
+        departures.sort_by(|a, b| a.1.cmp(&b.1));
+
+        link_adjacent_transfers(graph, &transfers);
+        link_transfers_to_departures(graph, &transfers, departures);
+    }
+}
+
+fn link_adjacent_transfers(graph: &mut Graph<GtfsId>, transfers: &Vec<GtfsId>) {
+    for adj_transfers in transfers.windows(2) {
+        let from = adj_transfers[0].clone();
+        let to = adj_transfers[1].clone();
+        let edge_weight = to.1 - from.1;
+            graph.add_edge(edge_id(&from, &to),
+                            from,
+                            to,
+                            edge_weight);
+    }
+
+}
+
+fn link_transfers_to_departures(graph: &mut Graph<GtfsId>,
+                                transfers: &Vec<GtfsId>,
+                                departures: Vec<GtfsId>) {
+
+    for departure in departures {
+        if let Some(transfer) = transfers.iter()
+                                            .filter(|t| t.1 <= departure.1)
+                                            .max_by_key(|t| t.1) {
+        let edge_weight = departure.1 - transfer.1;
+        graph.add_edge(edge_id(&transfer, &departure),
+                        transfer.clone(),
+                        departure,
+                        edge_weight);
+        }
+    }
 }
 
 type ScheduleRow = (String,
@@ -486,7 +535,6 @@ mod test {
     }
 
     #[test]
-    #[ignore]
     fn attaches_transfer_nodes() {
         let transfer_edges = vec![
             // arrival -> transfer
@@ -496,7 +544,7 @@ mod test {
             (("E", "07:50:00", "arrival", Some("r2")),
              ("E", "07:55:00", "transfer", None),
              5),
-            (("E", "08:50:00", "arrival", Some("r2")),
+            (("E", "08:50:00", "arrival", Some("r3")),
              ("E", "08:55:00", "transfer", None),
              5),
             (("E", "07:30:00", "arrival", Some("g1")),
