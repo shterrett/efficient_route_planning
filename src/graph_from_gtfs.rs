@@ -1,6 +1,5 @@
 use std::collections::HashSet;
 use std::collections::HashMap;
-use std::hash::Hash;
 use time::{ strptime };
 
 use weighted_graph::{ GraphKey, Graph };
@@ -11,15 +10,15 @@ type ServiceId = String;
 type TripId = String;
 type StopId = String;
 
-pub type GTFS_ID = (String,          // stop id
+pub type GtfsId = (String,          // stop id
                     i64,             // time
                     &'static str,    // type
                     Option<String>); // trip id (None for transfer)
-impl GraphKey for GTFS_ID {}
+impl GraphKey for GtfsId {}
 
 const FIVE_MINUTES: i64 = 5 * 60;
 
-pub fn build_graph_from_gtfs(gtfs_dir: &str, day: &str) -> Graph<GTFS_ID> {
+pub fn build_graph_from_gtfs(gtfs_dir: &str, day: &str) -> Graph<GtfsId> {
     let schedule_path = gtfs_dir.to_string() + "calendar.txt";
     let trip_path = gtfs_dir.to_string() + "trips.txt";
     let stops_path = gtfs_dir.to_string() + "stops.txt";
@@ -29,8 +28,7 @@ pub fn build_graph_from_gtfs(gtfs_dir: &str, day: &str) -> Graph<GTFS_ID> {
                                    &services);
     let stops = stops_data(&stops_path);
 
-    let mut graph = assemble_graph(gtfs_dir, &trips, &stops);
-    graph
+    assemble_graph(gtfs_dir, &trips, &stops)
 }
 
 type StopTimeRow = (String,
@@ -45,7 +43,7 @@ type StopTimeRow = (String,
 
 fn assemble_graph(gtfs_dir: &str,
                   trips: &HashSet<TripId>,
-                  stops: &HashMap<StopId, Location>) -> Graph<GTFS_ID> {
+                  stops: &HashMap<StopId, Location>) -> Graph<GtfsId> {
     let mut reader = csv::Reader::from_file(gtfs_dir.to_string() + "stop_times.txt").unwrap();
     let mut graph = Graph::new();
     for row in reader.decode() {
@@ -54,33 +52,80 @@ fn assemble_graph(gtfs_dir: &str,
             build_nodes(&data, stops, &mut graph);
         }
     }
-
+    build_trip_edges(&mut graph);
+    link_transfer_nodes(&mut graph);
     graph
 }
 
 fn build_nodes(data: &StopTimeRow,
                stops: &HashMap<StopId, Location>,
-               graph: &mut Graph<GTFS_ID>) {
-    if let (Ok(arrival_time), Ok(departure_time)) = (strptime(&data.1, "%T"), strptime(&data.2, "%T")) {
-        let arr_node_id: GTFS_ID = (data.3.clone(),
-                                    arrival_time.to_timespec().sec,
+               graph: &mut Graph<GtfsId>) {
+    if let (Some(arrival_time),
+            Some(departure_time)) = (time_to_seconds_after_midnight(&data.1),
+                                     time_to_seconds_after_midnight(&data.2)) {
+
+        let arr_node_id: GtfsId = (data.3.clone(),
+                                    arrival_time,
                                     "arrival",
                                     Some(data.0.clone()));
-        let dep_node_id: GTFS_ID = (data.3.clone(),
-                                    departure_time.to_timespec().sec,
+        let dep_node_id: GtfsId = (data.3.clone(),
+                                    departure_time,
                                     "departure",
                                     Some(data.0.clone()));
-        let trf_node_id: GTFS_ID = (data.3.clone(),
-                                    arrival_time.to_timespec().sec + FIVE_MINUTES,
+        let trf_node_id: GtfsId = (data.3.clone(),
+                                    arrival_time + FIVE_MINUTES,
                                     "transfer",
                                     None);
 
         if let Some(stop_data) = stops.get(&data.3) {
-            for node_id in vec![arr_node_id, dep_node_id, trf_node_id] {
-                graph.add_node(node_id, stop_data.x, stop_data.y);
+            for node_id in vec![&arr_node_id, &dep_node_id, &trf_node_id] {
+                graph.add_node(node_id.clone(), stop_data.x, stop_data.y);
             }
+            graph.add_edge(edge_id(&arr_node_id, &trf_node_id),
+                           arr_node_id,
+                           trf_node_id,
+                           FIVE_MINUTES);
         }
     }
+}
+
+fn edge_id(from: &GtfsId, to: &GtfsId) -> GtfsId {
+    (from.0.clone() + &to.0.clone(),
+     from.1.clone(),
+     to.2.clone(),
+     None)
+}
+
+fn build_trip_edges(graph: &mut Graph<GtfsId>) {
+    let mut trip_nodes = HashMap::new();
+    for node in graph.all_nodes() {
+        if let Some(ref trip_id) = node.id.3 {
+            let mut nodes_for_trip = trip_nodes.entry(trip_id.clone()).or_insert(Vec::new());
+            nodes_for_trip.push(node.id.clone());
+        }
+    }
+
+    for (_, nodes) in trip_nodes.iter_mut() {
+        let mut ns = nodes.iter().filter(|n| n.2 != "transfer").collect::<Vec<&GtfsId>>();
+        ns.sort_by(|a, b|
+                   if a.1 == b.1 {
+                       a.2.cmp(&b.2)
+                   } else {
+                       a.1.cmp(&b.1)
+                   });
+
+        for adj_nodes in ns.windows(2) {
+            let from = adj_nodes[0].clone();
+            let to = adj_nodes[1].clone();
+            graph.add_edge(edge_id(&from, &to),
+                           from.clone(),
+                           to.clone(),
+                           to.1 - from.1);
+        }
+    }
+}
+
+fn link_transfer_nodes(graph: &mut Graph<GtfsId>) {
 }
 
 type ScheduleRow = (String,
@@ -178,17 +223,26 @@ fn stops_data(path: &str) -> HashMap<StopId, Location> {
           .collect()
 }
 
+fn time_to_seconds_after_midnight(t_str: &String) -> Option<i64> {
+    match strptime(t_str, "%T") {
+        Ok(t) => {
+            Some((t.tm_sec + 60 * t.tm_min + 60 * 60 * t.tm_hour) as i64)
+        }
+        Err(_) => None
+    }
+}
+
 #[cfg(test)]
 mod test {
     use std::collections::HashMap;
     use std::collections::HashSet;
-    use time::strptime;
-    use super::{ GTFS_ID,
+    use super::{ GtfsId,
                  TripId,
                  Location,
                  service_on_day,
                  trips_for_services,
                  stops_data,
+                 time_to_seconds_after_midnight,
                  build_graph_from_gtfs
                };
 
@@ -240,11 +294,20 @@ mod test {
         assert_eq!(stops, expected);
     }
 
-    fn to_node_id(data: (&str, &str, &str, Option<&str>)) -> GTFS_ID {
+    #[test]
+    fn parse_times_to_seconds() {
+        let t = "08:00:00".to_string();
+        let invalid = "notatime".to_string();
+
+        assert_eq!(time_to_seconds_after_midnight(&t), Some(8 * 60 * 60));
+        assert_eq!(time_to_seconds_after_midnight(&invalid), None);
+    }
+
+    fn to_node_id(data: (&'static str, &'static str, &'static str, Option<&str>)) -> GtfsId {
         let (id, t, stop_type, trip) = data;
 
         (id.to_string(),
-         strptime(t, "%T").unwrap().to_timespec().sec,
+         time_to_seconds_after_midnight(&t.to_string()).unwrap(),
          stop_type,
          trip.map(|n| n.to_string()))
     }
@@ -270,10 +333,13 @@ mod test {
                          ("B", "08:25:00", "departure", Some("r3")),
                          ("B", "08:30:00", "transfer", None),
                          ("E", "06:50:00", "arrival", Some("r1")),
+                         ("E", "06:50:00", "departure", Some("r1")),
                          ("E", "06:55:00", "transfer", None),
                          ("E", "07:50:00", "arrival", Some("r2")),
+                         ("E", "07:50:00", "departure", Some("r2")),
                          ("E", "07:55:00", "transfer", None),
                          ("E", "08:50:00", "arrival", Some("r3")),
+                         ("E", "08:50:00", "departure", Some("r3")),
                          ("E", "08:55:00", "transfer", None),
                          ("A", "06:15:00", "arrival", Some("g1")),
                          ("A", "06:15:00", "departure", Some("g1")),
@@ -354,14 +420,16 @@ mod test {
 
         let expected_node_ids = nodes.into_iter()
                                      .map(|data| to_node_id(data))
-                                     .collect::<HashSet<GTFS_ID>>();
+                                     .collect::<HashSet<GtfsId>>();
 
         let graph = build_graph_from_gtfs("data/gtfs_example/", "wednesday");
 
         let actual_nodes = graph.all_nodes()
                                 .iter()
                                 .map(|&node| node.id.clone())
-                                .collect::<HashSet<GTFS_ID>>();
+                                .collect::<HashSet<GtfsId>>();
+
+        assert_eq!(actual_nodes, expected_node_ids);
     }
 
     #[test]
@@ -393,7 +461,7 @@ mod test {
              0),
             (("E", "07:30:00", "arrival", Some("g1")),
              ("E", "07:35:00", "transfer", None),
-             30),
+             5),
             (("E", "07:30:00", "departure", Some("g1")),
              ("F", "07:40:00", "arrival", Some("g1")),
              10),
@@ -411,14 +479,14 @@ mod test {
             let to = to_node_id(edge.1);
             let cost = edge.2;
 
-            let actual_edge = graph.get_mut_edge(from, to);
+            let actual_edge = graph.get_mut_edge(&from, &to);
             assert!(actual_edge.is_some());
-            assert_eq!(actual_edge.map(|e| e.cost), Some(cost * 60));
+            assert_eq!(actual_edge.map(|e| e.weight), Some(cost * 60));
         }
     }
 
     #[test]
-    #[skip]
+    #[ignore]
     fn attaches_transfer_nodes() {
         let transfer_edges = vec![
             // arrival -> transfer
@@ -467,7 +535,7 @@ mod test {
              10),
             (("E", "09:05:00", "transfer", None),
              ("E", "09:35:00", "transfer", None),
-             30)
+             30),
             // transfer -> departure
             (("E", "06:55:00", "transfer", None),
              ("E", "07:30:00", "departure", Some("g1")),
@@ -489,14 +557,16 @@ mod test {
              5),
         ];
 
-        for edge in edges {
+        let mut graph = build_graph_from_gtfs("data/gtfs_example/", "wednesday");
+
+        for edge in transfer_edges {
             let from = to_node_id(edge.0);
             let to = to_node_id(edge.1);
             let cost = edge.2;
 
-            let actual_edge = graph.get_mut_edge(from, to);
+            let actual_edge = graph.get_mut_edge(&from, &to);
             assert!(actual_edge.is_some());
-            assert_eq!(actual_edge.map(|e| e.cost), Some(cost * 60));
+            assert_eq!(actual_edge.map(|e| e.weight), Some(cost * 60));
         }
     }
 }
