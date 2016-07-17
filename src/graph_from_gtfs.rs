@@ -7,8 +7,8 @@ use weighted_graph::{ GraphKey, Graph };
 extern crate csv;
 
 type ServiceId = String;
-type TripId = String;
-type StopId = String;
+pub type TripId = String;
+pub type StopId = String;
 
 #[derive(Debug, Eq, PartialEq, PartialOrd, Ord, Hash, Clone)]
 pub enum NodeType {
@@ -42,10 +42,10 @@ impl NodeType {
 
 #[derive(Eq, PartialEq, Hash, Clone, Debug)]
 pub struct GtfsId {
-    stop_id: StopId,
-    time: i64,
-    node_type: NodeType,
-    trip_id: Option<TripId>
+    pub stop_id: StopId,
+    pub time: i64,
+    pub node_type: NodeType,
+    pub trip_id: Option<TripId>
 }
 impl GraphKey for GtfsId {}
 
@@ -310,7 +310,7 @@ fn stops_data(path: &str) -> HashMap<StopId, Location> {
           .collect()
 }
 
-fn time_to_seconds_after_midnight(t_str: &String) -> Option<i64> {
+pub fn time_to_seconds_after_midnight(t_str: &String) -> Option<i64> {
     match strptime(t_str, "%T") {
         Ok(t) => {
             Some((t.tm_sec + 60 * t.tm_min + 60 * 60 * t.tm_hour) as i64)
