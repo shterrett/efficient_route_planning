@@ -3,6 +3,7 @@
 extern crate lazy_static;
 
 extern crate rand;
+extern crate time;
 
 pub mod pathfinder;
 pub mod road_weights;
@@ -16,3 +17,4 @@ pub mod connected_component;
 pub mod arc_flags;
 pub mod contraction;
 pub mod transit_nodes;
+pub mod graph_from_gtfs;

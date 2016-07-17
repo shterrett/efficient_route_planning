@@ -2,3 +2,4 @@ target
 Cargo.lock
 data/baden-wuerttemberg.osm
 data/saarland.osm
+data/manhattan.gtfs

@@ -6,5 +6,6 @@ authors = ["stuart"]
 [dependencies]
 xml-rs = "0.3"
 lazy_static = "0.1.*"
-time="0.1"
+time = "0.1"
 rand = "0.3"
+csv = "0.14"
