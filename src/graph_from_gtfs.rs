@@ -10,10 +10,43 @@ type ServiceId = String;
 type TripId = String;
 type StopId = String;
 
-pub type GtfsId = (String,          // stop id
-                    i64,             // time
-                    &'static str,    // type
-                    Option<String>); // trip id (None for transfer)
+#[derive(Debug, Eq, PartialEq, PartialOrd, Ord, Hash, Clone)]
+pub enum NodeType {
+    Arrival,
+    Departure,
+    Transfer
+}
+
+impl NodeType {
+    pub fn is_arrival(&self) -> bool {
+        match self {
+            &NodeType::Arrival => true,
+            _ => false
+        }
+    }
+
+    pub fn is_departure(&self) -> bool {
+        match self {
+            &NodeType::Departure => true,
+            _ => false
+        }
+    }
+
+    pub fn is_transfer(&self) -> bool {
+        match self {
+            &NodeType::Transfer => true,
+            _ => false
+        }
+    }
+}
+
+#[derive(Eq, PartialEq, Hash, Clone, Debug)]
+pub struct GtfsId {
+    stop_id: StopId,
+    time: i64,
+    node_type: NodeType,
+    trip_id: Option<TripId>
+}
 impl GraphKey for GtfsId {}
 
 const FIVE_MINUTES: i64 = 5 * 60;
@@ -64,18 +97,21 @@ fn build_nodes(data: &StopTimeRow,
             Some(departure_time)) = (time_to_seconds_after_midnight(&data.1),
                                      time_to_seconds_after_midnight(&data.2)) {
 
-        let arr_node_id: GtfsId = (data.3.clone(),
-                                    arrival_time,
-                                    "arrival",
-                                    Some(data.0.clone()));
-        let dep_node_id: GtfsId = (data.3.clone(),
-                                    departure_time,
-                                    "departure",
-                                    Some(data.0.clone()));
-        let trf_node_id: GtfsId = (data.3.clone(),
-                                    arrival_time + FIVE_MINUTES,
-                                    "transfer",
-                                    None);
+        let arr_node_id = GtfsId { stop_id: data.3.clone(),
+                                   time: arrival_time,
+                                   node_type: NodeType::Arrival,
+                                   trip_id: Some(data.0.clone())
+                                 };
+        let dep_node_id = GtfsId { stop_id: data.3.clone(),
+                                   time: departure_time,
+                                   node_type: NodeType::Departure,
+                                   trip_id: Some(data.0.clone())
+                                 };
+        let trf_node_id = GtfsId { stop_id: data.3.clone(),
+                                   time: arrival_time + FIVE_MINUTES,
+                                   node_type: NodeType::Transfer,
+                                   trip_id: None
+                                 };
 
         if let Some(stop_data) = stops.get(&data.3) {
             for node_id in vec![&arr_node_id, &dep_node_id, &trf_node_id] {
@@ -90,34 +126,36 @@ fn build_nodes(data: &StopTimeRow,
 }
 
 fn edge_id(from: &GtfsId, to: &GtfsId) -> GtfsId {
-    (from.0.clone() + &to.0.clone(),
-     from.1.clone(),
-     to.2.clone(),
-     None)
+    GtfsId {
+        stop_id: from.stop_id.clone() + &to.stop_id.clone(),
+        time: from.time.clone(),
+        node_type: to.node_type.clone(),
+        trip_id: None
+    }
 }
 
 fn build_trip_edges(graph: &mut Graph<GtfsId>) {
     let mut trip_nodes = HashMap::new();
     for node in graph.all_nodes() {
-        if let Some(ref trip_id) = node.id.3 {
+        if let Some(ref trip_id) = node.id.trip_id {
             let mut nodes_for_trip = trip_nodes.entry(trip_id.clone()).or_insert(Vec::new());
             nodes_for_trip.push(node.id.clone());
         }
     }
 
     for (_, nodes) in trip_nodes.iter_mut() {
-        let mut ns = nodes.iter().filter(|n| n.2 != "transfer").collect::<Vec<&GtfsId>>();
+        let mut ns = nodes.iter().filter(|n| !n.node_type.is_transfer()).collect::<Vec<&GtfsId>>();
         ns.sort_by(|a, b|
-                   if a.1 == b.1 {
-                       a.2.cmp(&b.2)
+                   if a.time == b.time {
+                       a.node_type.cmp(&b.node_type)
                    } else {
-                       a.1.cmp(&b.1)
+                       a.time.cmp(&b.time)
                    });
 
         for adj_nodes in ns.windows(2) {
             let from = adj_nodes[0].clone();
             let to = adj_nodes[1].clone();
-            let edge_weight = to.1 - from.1;
+            let edge_weight = to.time - from.time;
             graph.add_edge(edge_id(&from, &to),
                            from,
                            to,
@@ -128,8 +166,8 @@ fn build_trip_edges(graph: &mut Graph<GtfsId>) {
 
 fn link_transfer_nodes(graph: &mut Graph<GtfsId>) {
     let mut stop_nodes = HashMap::new();
-    for node in graph.all_nodes().iter().filter(|n| n.id.2 != "arrival") {
-        let mut nodes_for_stop = stop_nodes.entry(node.id.0.clone()).or_insert(Vec::new());
+    for node in graph.all_nodes().iter().filter(|n| !n.id.node_type.is_arrival()) {
+        let mut nodes_for_stop = stop_nodes.entry(node.id.stop_id.clone()).or_insert(Vec::new());
         nodes_for_stop.push(node.id.clone());
     }
 
@@ -137,10 +175,10 @@ fn link_transfer_nodes(graph: &mut Graph<GtfsId>) {
         let (mut transfers,
              mut departures): (Vec<GtfsId>,
                                Vec<GtfsId>) = nodes.into_iter()
-                                                   .partition(|n| n.2 == "transfer");
+                                                   .partition(|n| n.node_type.is_transfer());
 
-        transfers.sort_by(|a, b| a.1.cmp(&b.1));
-        departures.sort_by(|a, b| a.1.cmp(&b.1));
+        transfers.sort_by(|a, b| a.time.cmp(&b.time));
+        departures.sort_by(|a, b| a.time.cmp(&b.time));
 
         link_adjacent_transfers(graph, &transfers);
         link_transfers_to_departures(graph, &transfers, departures);
@@ -151,7 +189,7 @@ fn link_adjacent_transfers(graph: &mut Graph<GtfsId>, transfers: &Vec<GtfsId>) {
     for adj_transfers in transfers.windows(2) {
         let from = adj_transfers[0].clone();
         let to = adj_transfers[1].clone();
-        let edge_weight = to.1 - from.1;
+        let edge_weight = to.time - from.time;
             graph.add_edge(edge_id(&from, &to),
                             from,
                             to,
@@ -166,9 +204,9 @@ fn link_transfers_to_departures(graph: &mut Graph<GtfsId>,
 
     for departure in departures {
         if let Some(transfer) = transfers.iter()
-                                            .filter(|t| t.1 <= departure.1)
-                                            .max_by_key(|t| t.1) {
-        let edge_weight = departure.1 - transfer.1;
+                                            .filter(|t| t.time <= departure.time)
+                                            .max_by_key(|t| t.time) {
+        let edge_weight = departure.time - transfer.time;
         graph.add_edge(edge_id(&transfer, &departure),
                         transfer.clone(),
                         departure,
@@ -288,6 +326,7 @@ mod test {
     use super::{ GtfsId,
                  TripId,
                  Location,
+                 NodeType,
                  service_on_day,
                  trips_for_services,
                  stops_data,
@@ -352,119 +391,120 @@ mod test {
         assert_eq!(time_to_seconds_after_midnight(&invalid), None);
     }
 
-    fn to_node_id(data: (&'static str, &'static str, &'static str, Option<&str>)) -> GtfsId {
+    fn to_node_id(data: (&'static str, &'static str, NodeType, Option<&str>)) -> GtfsId {
         let (id, t, stop_type, trip) = data;
 
-        (id.to_string(),
-         time_to_seconds_after_midnight(&t.to_string()).unwrap(),
-         stop_type,
-         trip.map(|n| n.to_string()))
+        GtfsId { stop_id: id.to_string(),
+                 time: time_to_seconds_after_midnight(&t.to_string()).unwrap(),
+                 node_type: stop_type,
+                 trip_id: trip.map(|n| n.to_string())
+               }
     }
 
     #[test]
     fn build_transit_graph_with_valid_nodes() {
-        let nodes = vec![("A", "06:00:00", "arrival", Some("r1")),
-                         ("A", "06:00:00", "departure", Some("r1")),
-                         ("A", "06:05:00", "transfer", None),
-                         ("A", "07:00:00", "arrival", Some("r2")),
-                         ("A", "07:00:00", "departure", Some("r2")),
-                         ("A", "07:05:00", "transfer", None),
-                         ("A", "08:00:00", "arrival", Some("r3")),
-                         ("A", "08:00:00", "departure", Some("r3")),
-                         ("A", "08:05:00", "transfer", None),
-                         ("B", "06:25:00", "arrival", Some("r1")),
-                         ("B", "06:25:00", "departure", Some("r1")),
-                         ("B", "06:30:00", "transfer", None),
-                         ("B", "07:25:00", "arrival", Some("r2")),
-                         ("B", "07:25:00", "departure", Some("r2")),
-                         ("B", "07:30:00", "transfer", None),
-                         ("B", "08:25:00", "arrival", Some("r3")),
-                         ("B", "08:25:00", "departure", Some("r3")),
-                         ("B", "08:30:00", "transfer", None),
-                         ("E", "06:50:00", "arrival", Some("r1")),
-                         ("E", "06:50:00", "departure", Some("r1")),
-                         ("E", "06:55:00", "transfer", None),
-                         ("E", "07:50:00", "arrival", Some("r2")),
-                         ("E", "07:50:00", "departure", Some("r2")),
-                         ("E", "07:55:00", "transfer", None),
-                         ("E", "08:50:00", "arrival", Some("r3")),
-                         ("E", "08:50:00", "departure", Some("r3")),
-                         ("E", "08:55:00", "transfer", None),
-                         ("A", "06:15:00", "arrival", Some("g1")),
-                         ("A", "06:15:00", "departure", Some("g1")),
-                         ("A", "06:20:00", "transfer", None),
-                         ("A", "06:45:00", "arrival", Some("g2")),
-                         ("A", "06:45:00", "departure", Some("g2")),
-                         ("A", "06:50:00", "transfer", None),
-                         ("A", "07:15:00", "arrival", Some("g3")),
-                         ("A", "07:15:00", "departure", Some("g3")),
-                         ("A", "07:20:00", "transfer", None),
-                         ("A", "07:45:00", "arrival", Some("g4")),
-                         ("A", "07:45:00", "departure", Some("g4")),
-                         ("A", "07:50:00", "transfer", None),
-                         ("A", "08:15:00", "arrival", Some("g5")),
-                         ("A", "08:15:00", "departure", Some("g5")),
-                         ("A", "08:20:00", "transfer", None),
-                         ("C", "06:45:00", "arrival", Some("g1")),
-                         ("C", "06:45:00", "departure", Some("g1")),
-                         ("C", "06:50:00", "transfer", None),
-                         ("C", "07:15:00", "arrival", Some("g2")),
-                         ("C", "07:15:00", "departure", Some("g2")),
-                         ("C", "07:20:00", "transfer", None),
-                         ("C", "07:45:00", "arrival", Some("g3")),
-                         ("C", "07:45:00", "departure", Some("g3")),
-                         ("C", "07:50:00", "transfer", None),
-                         ("C", "08:15:00", "arrival", Some("g4")),
-                         ("C", "08:15:00", "departure", Some("g4")),
-                         ("C", "08:20:00", "transfer", None),
-                         ("C", "08:45:00", "arrival", Some("g5")),
-                         ("C", "08:45:00", "departure", Some("g5")),
-                         ("C", "08:50:00", "transfer", None),
-                         ("D", "07:00:00", "arrival", Some("g1")),
-                         ("D", "07:00:00", "departure", Some("g1")),
-                         ("D", "07:05:00", "transfer", None),
-                         ("D", "07:30:00", "arrival", Some("g2")),
-                         ("D", "07:30:00", "departure", Some("g2")),
-                         ("D", "07:35:00", "transfer", None),
-                         ("D", "08:00:00", "arrival", Some("g3")),
-                         ("D", "08:00:00", "departure", Some("g3")),
-                         ("D", "08:05:00", "transfer", None),
-                         ("D", "08:30:00", "arrival", Some("g4")),
-                         ("D", "08:30:00", "departure", Some("g4")),
-                         ("D", "08:35:00", "transfer", None),
-                         ("D", "09:00:00", "arrival", Some("g5")),
-                         ("D", "09:00:00", "departure", Some("g5")),
-                         ("D", "09:05:00", "transfer", None),
-                         ("E", "07:30:00", "arrival", Some("g1")),
-                         ("E", "07:30:00", "departure", Some("g1")),
-                         ("E", "07:35:00", "transfer", None),
-                         ("E", "08:00:00", "arrival", Some("g2")),
-                         ("E", "08:00:00", "departure", Some("g2")),
-                         ("E", "08:05:00", "transfer", None),
-                         ("E", "08:30:00", "arrival", Some("g3")),
-                         ("E", "08:30:00", "departure", Some("g3")),
-                         ("E", "08:35:00", "transfer", None),
-                         ("E", "09:00:00", "arrival", Some("g4")),
-                         ("E", "09:00:00", "departure", Some("g4")),
-                         ("E", "09:05:00", "transfer", None),
-                         ("E", "09:30:00", "arrival", Some("g5")),
-                         ("E", "09:30:00", "departure", Some("g5")),
-                         ("E", "09:35:00", "transfer", None),
-                         ("F", "07:40:00", "arrival", Some("g1")),
-                         ("F", "07:40:00", "departure", Some("g1")),
-                         ("F", "07:45:00", "transfer", None),
-                         ("F", "08:10:00", "arrival", Some("g2")),
-                         ("F", "08:10:00", "departure", Some("g2")),
-                         ("F", "08:15:00", "transfer", None),
-                         ("F", "08:40:00", "arrival", Some("g3")),
-                         ("F", "08:40:00", "departure", Some("g3")),
-                         ("F", "08:45:00", "transfer", None),
-                         ("F", "09:10:00", "arrival", Some("g4")),
-                         ("F", "09:10:00", "departure", Some("g4")),
-                         ("F", "09:15:00", "transfer", None),
-                         ("F", "09:40:00", "arrival", Some("g5")),
-                         ("F", "09:40:00", "departure", Some("g5")),
-                         ("F", "09:45:00", "transfer", None)
+        let nodes = vec![("A", "06:00:00", NodeType::Arrival, Some("r1")),
+                         ("A", "06:00:00", NodeType::Departure, Some("r1")),
+                         ("A", "06:05:00", NodeType::Transfer, None),
+                         ("A", "07:00:00", NodeType::Arrival, Some("r2")),
+                         ("A", "07:00:00", NodeType::Departure, Some("r2")),
+                         ("A", "07:05:00", NodeType::Transfer, None),
+                         ("A", "08:00:00", NodeType::Arrival, Some("r3")),
+                         ("A", "08:00:00", NodeType::Departure, Some("r3")),
+                         ("A", "08:05:00", NodeType::Transfer, None),
+                         ("B", "06:25:00", NodeType::Arrival, Some("r1")),
+                         ("B", "06:25:00", NodeType::Departure, Some("r1")),
+                         ("B", "06:30:00", NodeType::Transfer, None),
+                         ("B", "07:25:00", NodeType::Arrival, Some("r2")),
+                         ("B", "07:25:00", NodeType::Departure, Some("r2")),
+                         ("B", "07:30:00", NodeType::Transfer, None),
+                         ("B", "08:25:00", NodeType::Arrival, Some("r3")),
+                         ("B", "08:25:00", NodeType::Departure, Some("r3")),
+                         ("B", "08:30:00", NodeType::Transfer, None),
+                         ("E", "06:50:00", NodeType::Arrival, Some("r1")),
+                         ("E", "06:50:00", NodeType::Departure, Some("r1")),
+                         ("E", "06:55:00", NodeType::Transfer, None),
+                         ("E", "07:50:00", NodeType::Arrival, Some("r2")),
+                         ("E", "07:50:00", NodeType::Departure, Some("r2")),
+                         ("E", "07:55:00", NodeType::Transfer, None),
+                         ("E", "08:50:00", NodeType::Arrival, Some("r3")),
+                         ("E", "08:50:00", NodeType::Departure, Some("r3")),
+                         ("E", "08:55:00", NodeType::Transfer, None),
+                         ("A", "06:15:00", NodeType::Arrival, Some("g1")),
+                         ("A", "06:15:00", NodeType::Departure, Some("g1")),
+                         ("A", "06:20:00", NodeType::Transfer, None),
+                         ("A", "06:45:00", NodeType::Arrival, Some("g2")),
+                         ("A", "06:45:00", NodeType::Departure, Some("g2")),
+                         ("A", "06:50:00", NodeType::Transfer, None),
+                         ("A", "07:15:00", NodeType::Arrival, Some("g3")),
+                         ("A", "07:15:00", NodeType::Departure, Some("g3")),
+                         ("A", "07:20:00", NodeType::Transfer, None),
+                         ("A", "07:45:00", NodeType::Arrival, Some("g4")),
+                         ("A", "07:45:00", NodeType::Departure, Some("g4")),
+                         ("A", "07:50:00", NodeType::Transfer, None),
+                         ("A", "08:15:00", NodeType::Arrival, Some("g5")),
+                         ("A", "08:15:00", NodeType::Departure, Some("g5")),
+                         ("A", "08:20:00", NodeType::Transfer, None),
+                         ("C", "06:45:00", NodeType::Arrival, Some("g1")),
+                         ("C", "06:45:00", NodeType::Departure, Some("g1")),
+                         ("C", "06:50:00", NodeType::Transfer, None),
+                         ("C", "07:15:00", NodeType::Arrival, Some("g2")),
+                         ("C", "07:15:00", NodeType::Departure, Some("g2")),
+                         ("C", "07:20:00", NodeType::Transfer, None),
+                         ("C", "07:45:00", NodeType::Arrival, Some("g3")),
+                         ("C", "07:45:00", NodeType::Departure, Some("g3")),
+                         ("C", "07:50:00", NodeType::Transfer, None),
+                         ("C", "08:15:00", NodeType::Arrival, Some("g4")),
+                         ("C", "08:15:00", NodeType::Departure, Some("g4")),
+                         ("C", "08:20:00", NodeType::Transfer, None),
+                         ("C", "08:45:00", NodeType::Arrival, Some("g5")),
+                         ("C", "08:45:00", NodeType::Departure, Some("g5")),
+                         ("C", "08:50:00", NodeType::Transfer, None),
+                         ("D", "07:00:00", NodeType::Arrival, Some("g1")),
+                         ("D", "07:00:00", NodeType::Departure, Some("g1")),
+                         ("D", "07:05:00", NodeType::Transfer, None),
+                         ("D", "07:30:00", NodeType::Arrival, Some("g2")),
+                         ("D", "07:30:00", NodeType::Departure, Some("g2")),
+                         ("D", "07:35:00", NodeType::Transfer, None),
+                         ("D", "08:00:00", NodeType::Arrival, Some("g3")),
+                         ("D", "08:00:00", NodeType::Departure, Some("g3")),
+                         ("D", "08:05:00", NodeType::Transfer, None),
+                         ("D", "08:30:00", NodeType::Arrival, Some("g4")),
+                         ("D", "08:30:00", NodeType::Departure, Some("g4")),
+                         ("D", "08:35:00", NodeType::Transfer, None),
+                         ("D", "09:00:00", NodeType::Arrival, Some("g5")),
+                         ("D", "09:00:00", NodeType::Departure, Some("g5")),
+                         ("D", "09:05:00", NodeType::Transfer, None),
+                         ("E", "07:30:00", NodeType::Arrival, Some("g1")),
+                         ("E", "07:30:00", NodeType::Departure, Some("g1")),
+                         ("E", "07:35:00", NodeType::Transfer, None),
+                         ("E", "08:00:00", NodeType::Arrival, Some("g2")),
+                         ("E", "08:00:00", NodeType::Departure, Some("g2")),
+                         ("E", "08:05:00", NodeType::Transfer, None),
+                         ("E", "08:30:00", NodeType::Arrival, Some("g3")),
+                         ("E", "08:30:00", NodeType::Departure, Some("g3")),
+                         ("E", "08:35:00", NodeType::Transfer, None),
+                         ("E", "09:00:00", NodeType::Arrival, Some("g4")),
+                         ("E", "09:00:00", NodeType::Departure, Some("g4")),
+                         ("E", "09:05:00", NodeType::Transfer, None),
+                         ("E", "09:30:00", NodeType::Arrival, Some("g5")),
+                         ("E", "09:30:00", NodeType::Departure, Some("g5")),
+                         ("E", "09:35:00", NodeType::Transfer, None),
+                         ("F", "07:40:00", NodeType::Arrival, Some("g1")),
+                         ("F", "07:40:00", NodeType::Departure, Some("g1")),
+                         ("F", "07:45:00", NodeType::Transfer, None),
+                         ("F", "08:10:00", NodeType::Arrival, Some("g2")),
+                         ("F", "08:10:00", NodeType::Departure, Some("g2")),
+                         ("F", "08:15:00", NodeType::Transfer, None),
+                         ("F", "08:40:00", NodeType::Arrival, Some("g3")),
+                         ("F", "08:40:00", NodeType::Departure, Some("g3")),
+                         ("F", "08:45:00", NodeType::Transfer, None),
+                         ("F", "09:10:00", NodeType::Arrival, Some("g4")),
+                         ("F", "09:10:00", NodeType::Departure, Some("g4")),
+                         ("F", "09:15:00", NodeType::Transfer, None),
+                         ("F", "09:40:00", NodeType::Arrival, Some("g5")),
+                         ("F", "09:40:00", NodeType::Departure, Some("g5")),
+                         ("F", "09:45:00", NodeType::Transfer, None)
                     ];
 
         let expected_node_ids = nodes.into_iter()
@@ -484,41 +524,41 @@ mod test {
     #[test]
     fn build_transit_graph_with_edges_within_trip() {
         let edges = vec![
-            (("A", "06:15:00", "departure", Some("g1")),
-             ("C", "06:45:00", "arrival", Some("g1")),
+            (("A", "06:15:00", NodeType::Departure, Some("g1")),
+             ("C", "06:45:00", NodeType::Arrival, Some("g1")),
              30),
-            (("C", "06:45:00", "arrival", Some("g1")),
-             ("C", "06:45:00", "departure", Some("g1")),
+            (("C", "06:45:00", NodeType::Arrival, Some("g1")),
+             ("C", "06:45:00", NodeType::Departure, Some("g1")),
              0),
-            (("C", "06:45:00", "arrival", Some("g1")),
-             ("C", "06:50:00", "transfer", None),
+            (("C", "06:45:00", NodeType::Arrival, Some("g1")),
+             ("C", "06:50:00", NodeType::Transfer, None),
              5),
-            (("C", "06:45:00", "departure", Some("g1")),
-             ("D", "07:00:00", "arrival", Some("g1")),
+            (("C", "06:45:00", NodeType::Departure, Some("g1")),
+             ("D", "07:00:00", NodeType::Arrival, Some("g1")),
              15),
-            (("D", "07:00:00", "arrival", Some("g1")),
-             ("D", "07:00:00", "departure", Some("g1")),
+            (("D", "07:00:00", NodeType::Arrival, Some("g1")),
+             ("D", "07:00:00", NodeType::Departure, Some("g1")),
              0),
-            (("D", "07:00:00", "arrival", Some("g1")),
-             ("D", "07:05:00", "transfer", None),
+            (("D", "07:00:00", NodeType::Arrival, Some("g1")),
+             ("D", "07:05:00", NodeType::Transfer, None),
              5),
-            (("D", "07:00:00", "departure", Some("g1")),
-             ("E", "07:30:00", "arrival", Some("g1")),
+            (("D", "07:00:00", NodeType::Departure, Some("g1")),
+             ("E", "07:30:00", NodeType::Arrival, Some("g1")),
              30),
-            (("E", "07:30:00", "arrival", Some("g1")),
-             ("E", "07:30:00", "departure", Some("g1")),
+            (("E", "07:30:00", NodeType::Arrival, Some("g1")),
+             ("E", "07:30:00", NodeType::Departure, Some("g1")),
              0),
-            (("E", "07:30:00", "arrival", Some("g1")),
-             ("E", "07:35:00", "transfer", None),
+            (("E", "07:30:00", NodeType::Arrival, Some("g1")),
+             ("E", "07:35:00", NodeType::Transfer, None),
              5),
-            (("E", "07:30:00", "departure", Some("g1")),
-             ("F", "07:40:00", "arrival", Some("g1")),
+            (("E", "07:30:00", NodeType::Departure, Some("g1")),
+             ("F", "07:40:00", NodeType::Arrival, Some("g1")),
              10),
-            (("F", "07:40:00", "arrival", Some("g1")),
-             ("F", "07:40:00", "departure", Some("g1")),
+            (("F", "07:40:00", NodeType::Arrival, Some("g1")),
+             ("F", "07:40:00", NodeType::Departure, Some("g1")),
              0),
-            (("F", "07:40:00", "arrival", Some("g1")),
-             ("F", "07:45:00", "transfer", None),
+            (("F", "07:40:00", NodeType::Arrival, Some("g1")),
+             ("F", "07:45:00", NodeType::Transfer, None),
              5)];
 
         let mut graph = build_graph_from_gtfs("data/gtfs_example/", "wednesday");
@@ -538,70 +578,70 @@ mod test {
     fn attaches_transfer_nodes() {
         let transfer_edges = vec![
             // arrival -> transfer
-            (("E", "06:50:00", "arrival", Some("r1")),
-             ("E", "06:55:00", "transfer", None),
+            (("E", "06:50:00", NodeType::Arrival, Some("r1")),
+             ("E", "06:55:00", NodeType::Transfer, None),
              5),
-            (("E", "07:50:00", "arrival", Some("r2")),
-             ("E", "07:55:00", "transfer", None),
+            (("E", "07:50:00", NodeType::Arrival, Some("r2")),
+             ("E", "07:55:00", NodeType::Transfer, None),
              5),
-            (("E", "08:50:00", "arrival", Some("r3")),
-             ("E", "08:55:00", "transfer", None),
+            (("E", "08:50:00", NodeType::Arrival, Some("r3")),
+             ("E", "08:55:00", NodeType::Transfer, None),
              5),
-            (("E", "07:30:00", "arrival", Some("g1")),
-             ("E", "07:35:00", "transfer", None),
+            (("E", "07:30:00", NodeType::Arrival, Some("g1")),
+             ("E", "07:35:00", NodeType::Transfer, None),
              5),
-            (("E", "08:00:00", "arrival", Some("g2")),
-             ("E", "08:05:00", "transfer", None),
+            (("E", "08:00:00", NodeType::Arrival, Some("g2")),
+             ("E", "08:05:00", NodeType::Transfer, None),
              5),
-            (("E", "08:30:00", "arrival", Some("g3")),
-             ("E", "08:35:00", "transfer", None),
+            (("E", "08:30:00", NodeType::Arrival, Some("g3")),
+             ("E", "08:35:00", NodeType::Transfer, None),
              5),
-            (("E", "09:00:00", "arrival", Some("g4")),
-             ("E", "09:05:00", "transfer", None),
+            (("E", "09:00:00", NodeType::Arrival, Some("g4")),
+             ("E", "09:05:00", NodeType::Transfer, None),
              5),
-            (("E", "09:30:00", "arrival", Some("g5")),
-             ("E", "09:35:00", "transfer", None),
+            (("E", "09:30:00", NodeType::Arrival, Some("g5")),
+             ("E", "09:35:00", NodeType::Transfer, None),
              5),
             // transfer -> transfer
-            (("E", "06:55:00", "transfer", None),
-             ("E", "07:35:00", "transfer", None),
+            (("E", "06:55:00", NodeType::Transfer, None),
+             ("E", "07:35:00", NodeType::Transfer, None),
              40),
-            (("E", "07:35:00", "transfer", None),
-             ("E", "07:55:00", "transfer", None),
+            (("E", "07:35:00", NodeType::Transfer, None),
+             ("E", "07:55:00", NodeType::Transfer, None),
              20),
-            (("E", "07:55:00", "transfer", None),
-             ("E", "08:05:00", "transfer", None),
+            (("E", "07:55:00", NodeType::Transfer, None),
+             ("E", "08:05:00", NodeType::Transfer, None),
              10),
-            (("E", "08:05:00", "transfer", None),
-             ("E", "08:35:00", "transfer", None),
+            (("E", "08:05:00", NodeType::Transfer, None),
+             ("E", "08:35:00", NodeType::Transfer, None),
              30),
-            (("E", "08:35:00", "transfer", None),
-             ("E", "08:55:00", "transfer", None),
+            (("E", "08:35:00", NodeType::Transfer, None),
+             ("E", "08:55:00", NodeType::Transfer, None),
              20),
-            (("E", "08:55:00", "transfer", None),
-             ("E", "09:05:00", "transfer", None),
+            (("E", "08:55:00", NodeType::Transfer, None),
+             ("E", "09:05:00", NodeType::Transfer, None),
              10),
-            (("E", "09:05:00", "transfer", None),
-             ("E", "09:35:00", "transfer", None),
+            (("E", "09:05:00", NodeType::Transfer, None),
+             ("E", "09:35:00", NodeType::Transfer, None),
              30),
             // transfer -> departure
-            (("E", "06:55:00", "transfer", None),
-             ("E", "07:30:00", "departure", Some("g1")),
+            (("E", "06:55:00", NodeType::Transfer, None),
+             ("E", "07:30:00", NodeType::Departure, Some("g1")),
              35),
-            (("E", "07:35:00", "transfer", None),
-             ("E", "07:50:00", "departure", Some("r2")),
+            (("E", "07:35:00", NodeType::Transfer, None),
+             ("E", "07:50:00", NodeType::Departure, Some("r2")),
              15),
-            (("E", "07:55:00", "transfer", None),
-             ("E", "08:00:00", "departure", Some("g2")),
+            (("E", "07:55:00", NodeType::Transfer, None),
+             ("E", "08:00:00", NodeType::Departure, Some("g2")),
              5),
-            (("E", "08:05:00", "transfer", None),
-             ("E", "08:30:00", "departure", Some("g3")),
+            (("E", "08:05:00", NodeType::Transfer, None),
+             ("E", "08:30:00", NodeType::Departure, Some("g3")),
              25),
-            (("E", "08:35:00", "transfer", None),
-             ("E", "08:50:00", "departure", Some("r3")),
+            (("E", "08:35:00", NodeType::Transfer, None),
+             ("E", "08:50:00", NodeType::Departure, Some("r3")),
              15),
-            (("E", "08:55:00", "transfer", None),
-             ("E", "09:00:00", "departure", Some("g4")),
+            (("E", "08:55:00", NodeType::Transfer, None),
+             ("E", "09:00:00", NodeType::Departure, Some("g4")),
              5),
         ];
 
