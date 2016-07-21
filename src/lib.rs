@@ -19,3 +19,4 @@ pub mod contraction;
 pub mod transit_nodes;
 pub mod graph_from_gtfs;
 pub mod gtfs_dijkstra;
+pub mod pareto_sets;
