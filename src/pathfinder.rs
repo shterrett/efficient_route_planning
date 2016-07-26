@@ -57,6 +57,39 @@ impl<'a, T: GraphKey> Pathfinder<'a, T> {
                                 };
         results.insert(source.clone(), initial.clone());
         min_heap.push(initial.clone());
+        self.compute_shortest_path(graph, results, min_heap, destination)
+    }
+
+    pub fn set_shortest_path(&self,
+                             graph: &'a Graph<T>,
+                             sources: &Vec<T>,
+                             destination: Option<&T>,
+                            ) -> (i64, HashMap<T, CurrentBest<T>>) {
+        let mut min_heap = BinaryHeap::new();
+        let mut results = HashMap::new();
+
+        for source in sources {
+            let initial = CurrentBest { id: source.clone(),
+                                        cost: self.heuristic(graph.get_node(source),
+                                                            destination.and_then(|id|
+                                                            graph.get_node(id)
+                                                            )
+                                                            ),
+                                        predecessor: None
+                                    };
+            results.insert(source.clone(), initial.clone());
+            min_heap.push(initial.clone());
+        }
+
+        self.compute_shortest_path(graph, results, min_heap, destination)
+    }
+
+    pub fn compute_shortest_path(&self,
+                                 graph: &'a Graph<T>,
+                                 mut results: HashMap<T, CurrentBest<T>>,
+                                 mut min_heap: BinaryHeap<CurrentBest<T>>,
+                                 destination: Option<&T>
+                                ) -> (i64, HashMap<T, CurrentBest<T>>) {
 
         while let Some(current) = min_heap.pop() {
             if let Some(target) = destination {
