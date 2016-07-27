@@ -1,9 +1,11 @@
 use std::collections::{ HashMap, HashSet };
 
+use pathfinder::CurrentBest;
 use weighted_graph::{ Graph };
 use graph_from_gtfs::{ GtfsId,
                        StopId
                      };
+use set_dijkstra::shortest_path as set_dijkstra;
 
 fn partition_station_nodes<'a>(graph: &'a Graph<GtfsId>) -> HashMap<&'a StopId, HashSet<&'a GtfsId>> {
     let mut partition = HashMap::new();
@@ -13,6 +15,14 @@ fn partition_station_nodes<'a>(graph: &'a Graph<GtfsId>) -> HashMap<&'a StopId, 
     }
 
     partition
+}
+
+fn full_dijkstra_from_station<'a>(graph: &'a Graph<GtfsId>,
+                              partition: &'a HashMap<&'a StopId, HashSet<&'a GtfsId>>,
+                              station: &StopId
+                             ) -> HashMap<GtfsId, CurrentBest<GtfsId>> {
+    let sources = partition.get(station).unwrap().into_iter().map(|&e| e).collect::<Vec<&GtfsId>>();
+    set_dijkstra(graph, &sources, None).1
 }
 
 #[cfg(test)]
@@ -26,7 +36,8 @@ mod test {
         NodeType
     };
     use super::{
-        partition_station_nodes
+        partition_station_nodes,
+        full_dijkstra_from_station
     };
 
     fn graph() -> Graph<GtfsId> {
@@ -178,5 +189,21 @@ mod test {
         assert_eq!(*partition.get(&"F".to_string()).unwrap(),
                    station_f_nodes.iter().map(|n| n).collect::<HashSet<&GtfsId>>());
 
+    }
+
+    #[test]
+    fn find_all_shortest_paths_from_station() {
+        let graph = graph();
+        let partition = partition_station_nodes(&graph);
+
+        let shortest_paths = full_dijkstra_from_station(&graph, &partition, &"A".to_string());
+
+        // no transfers
+        let spot_check_1 = to_node_id(("F", "09:40:00", NodeType::Arrival, Some("g5")));
+        assert_eq!(shortest_paths.get(&spot_check_1).unwrap().cost, 85 * 60);
+
+        // requires a transfer
+        let spot_check_2 = to_node_id(("F", "09:10:00", NodeType::Arrival, Some("g4")));
+        assert_eq!(shortest_paths.get(&spot_check_2).unwrap().cost, 70 * 60);
     }
 }
