@@ -62,13 +62,13 @@ impl<'a, T: GraphKey> Pathfinder<'a, T> {
 
     pub fn set_shortest_path(&self,
                              graph: &'a Graph<T>,
-                             sources: &Vec<T>,
+                             sources: &Vec<&T>,
                              destination: Option<&T>,
                             ) -> (i64, HashMap<T, CurrentBest<T>>) {
         let mut min_heap = BinaryHeap::new();
         let mut results = HashMap::new();
 
-        for source in sources {
+        for &source in sources {
             let initial = CurrentBest { id: source.clone(),
                                         cost: self.heuristic(graph.get_node(source),
                                                             destination.and_then(|id|

@@ -4,7 +4,7 @@ use pathfinder::{ Pathfinder, CurrentBest, EdgeIterator };
 use weighted_graph::{ GraphKey, Graph, Node };
 
 pub fn shortest_path<'a, T>(graph: &'a Graph<T>,
-                            sources: &Vec<T>,
+                            sources: &Vec<&T>,
                             destination: Option<&T>
                            ) -> (i64, HashMap<T, CurrentBest<T>>)
     where T: GraphKey {
@@ -57,7 +57,9 @@ mod test {
     #[test]
     fn find_shortest_path() {
         let graph = build_graph();
-        let sources = vec!["1", "3"];
+        let one = "1";
+        let three = "3";
+        let sources = vec![&one, &three];
         let (cost, _) = shortest_path(&graph, &sources, Some(&"5"));
 
         assert_eq!(cost, 4);
@@ -66,7 +68,9 @@ mod test {
     #[test]
     fn find_all_shortest_paths() {
         let graph = build_graph();
-        let sources = vec!["1", "3"];
+        let one = "1";
+        let three = "3";
+        let sources = vec![&one, &three];
 
         let mut expected = HashMap::new();
         expected.insert("1", CurrentBest { id: "1",
