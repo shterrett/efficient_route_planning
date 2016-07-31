@@ -3,18 +3,45 @@ use std::collections::{ HashMap, HashSet };
 use pathfinder::CurrentBest;
 use weighted_graph::{ Graph };
 use graph_from_gtfs::{ GtfsId,
-                       StopId
+                       StopId,
+                       NodeType
                      };
 use set_dijkstra::shortest_path as set_dijkstra;
 
-fn partition_station_nodes<'a>(graph: &'a Graph<GtfsId>) -> HashMap<&'a StopId, HashSet<&'a GtfsId>> {
-    let mut partition = HashMap::new();
-    for node in graph.all_nodes() {
-        let mut nodes = partition.entry(&node.id.stop_id).or_insert(HashSet::new());
-        nodes.insert(&node.id);
-    }
+pub fn transfer_patterns_for_all_stations(graph: &Graph<GtfsId>
+                                         ) -> HashMap<(StopId, StopId), HashSet<Vec<StopId>>> {
+    let partition = partition_station_nodes(&graph);
 
-    partition
+    let pairs = station_pairs(partition.keys().collect::<Vec<&&StopId>>());
+    pairs.iter().fold(HashMap::new(), |mut transfers, station_pair| {
+        let dijkstra_results = full_dijkstra_from_station(&graph,
+                                                          &partition,
+                                                          &station_pair.0);
+        let partitioned_dijkstra = partition_dijkstra_results(&dijkstra_results);
+        if let Some(destination_node) = partitioned_dijkstra.get(&station_pair.1) {
+            let smoothed = smooth_results(destination_node);
+            transfers.insert((station_pair.0.clone(), station_pair.1.clone()),
+                            transfer_patterns_for_station_pair(&dijkstra_results, &smoothed));
+        }
+        transfers
+    })
+}
+
+fn station_pairs<'a>(stations: Vec<&&'a StopId>) -> Vec<(&'a StopId, &'a StopId)> {
+    let mut pairs = vec![];
+    for &s1 in &stations {
+        for &s2 in &stations {
+            pairs.push((*s1, *s2));
+        }
+    }
+    pairs
+}
+
+fn partition_station_nodes<'a>(graph: &'a Graph<GtfsId>) -> HashMap<&'a StopId, HashSet<&'a GtfsId>> {
+    graph.all_nodes().iter().fold(HashMap::new(), |mut partition, node| {
+        partition.entry(&node.id.stop_id).or_insert(HashSet::new()).insert(&node.id);
+        partition
+    })
 }
 
 fn full_dijkstra_from_station<'a>(graph: &'a Graph<GtfsId>,
@@ -25,11 +52,89 @@ fn full_dijkstra_from_station<'a>(graph: &'a Graph<GtfsId>,
     set_dijkstra(graph, &sources, None).1
 }
 
+fn partition_dijkstra_results<'a>(results: &'a HashMap<GtfsId, CurrentBest<GtfsId>>)
+                              -> HashMap<&'a StopId, Vec<&'a CurrentBest<GtfsId>>> {
+    let mut partition = results.iter()
+                               .filter(|&(node_id, _)| node_id.node_type == NodeType::Arrival)
+                               .fold(HashMap::new(), |mut p, (node_id, node_result)| {
+                                   p.entry(&node_id.stop_id).or_insert(vec![]).push(node_result);
+                                   p
+                               });
+    for mut nodes in partition.values_mut() {
+        nodes.sort_by(|&a, &b| a.id.time.cmp(&b.id.time));
+    }
+    partition
+}
+
+fn smooth_results(results: &Vec<&CurrentBest<GtfsId>>) -> Vec<CurrentBest<GtfsId>> {
+    results.windows(2).fold(vec![results[0].clone()], |mut smoothed, nodes| {
+        let prev = nodes[0];
+        let curr = nodes[1];
+        let wait_cost = prev.cost + (curr.id.time - prev.id.time);
+        if curr.cost > wait_cost {
+            smoothed.push(CurrentBest { id: curr.id.clone(),
+                                        cost: wait_cost,
+                                        predecessor: Some(prev.id.clone())
+                                      });
+        } else {
+            smoothed.push(curr.clone());
+        }
+        smoothed
+    })
+}
+
+fn transfer_patterns_for_station_pair(dijkstra_results: &HashMap<GtfsId, CurrentBest<GtfsId>>,
+                                      smoothed: &Vec<CurrentBest<GtfsId>>
+                                     )
+                                     -> HashSet<Vec<StopId>> {
+    smoothed.iter().fold(HashSet::new(), |mut patterns, node| {
+        patterns.insert(collect_transfer_points(dijkstra_results, node));
+        patterns
+    })
+}
+
+fn collect_transfer_points(dijkstra_results: &HashMap<GtfsId, CurrentBest<GtfsId>>,
+                           final_node: &CurrentBest<GtfsId>,
+                          )
+                           -> Vec<StopId> {
+    let path = backtrack(dijkstra_results, final_node);
+    let mut transfers = path.iter().fold(vec![], |mut points, next_node| {
+        if points.last().is_none() || next_node.node_type.is_transfer() {
+            points.push(next_node);
+        }
+        points
+    });
+    if transfers.last().map(|node| node.stop_id != final_node.id.stop_id).unwrap_or(true) {
+        transfers.push(&final_node.id);
+    }
+
+    transfers.iter().map(|node| node.stop_id.clone()).collect()
+
+}
+
+fn backtrack(dijkstra_results: &HashMap<GtfsId, CurrentBest<GtfsId>>,
+             current: &CurrentBest<GtfsId>
+            ) -> Vec<GtfsId> {
+    match current.predecessor {
+        Some(ref predecessor) => {
+            let mut path = dijkstra_results.get(&predecessor)
+                                           .map(|cb| backtrack(dijkstra_results, cb))
+                                           .unwrap_or(vec![]);
+            path.push(current.id.clone());
+            path
+        }
+        None => {
+            vec![current.id.clone()]
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
-    use std::collections::HashSet;
+    use std::collections::{ HashSet, HashMap };
     use test_helpers::to_node_id;
     use weighted_graph::Graph;
+    use pathfinder::CurrentBest;
     use graph_from_gtfs::{
         GtfsId,
         build_graph_from_gtfs,
@@ -37,7 +142,11 @@ mod test {
     };
     use super::{
         partition_station_nodes,
-        full_dijkstra_from_station
+        full_dijkstra_from_station,
+        partition_dijkstra_results,
+        smooth_results,
+        transfer_patterns_for_station_pair,
+        transfer_patterns_for_all_stations
     };
 
     fn graph() -> Graph<GtfsId> {
@@ -205,5 +314,146 @@ mod test {
         // requires a transfer
         let spot_check_2 = to_node_id(("F", "09:10:00", NodeType::Arrival, Some("g4")));
         assert_eq!(shortest_paths.get(&spot_check_2).unwrap().cost, 70 * 60);
+    }
+
+    #[test]
+    fn results_partition_by_station_and_filtered_to_arrivals() {
+        let first_a_arrival = CurrentBest {
+                                id: to_node_id(("A", "09:40:00", NodeType::Arrival, Some("g5"))),
+                                cost: 5,
+                                predecessor: None
+                               };
+        let second_a_arrival = CurrentBest {
+                                id: to_node_id(("A", "10:40:00", NodeType::Arrival, Some("g5"))),
+                                cost: 5,
+                                predecessor: None
+                               };
+        let first_b_arrival = CurrentBest {
+                                id: to_node_id(("B", "09:40:00", NodeType::Arrival, Some("g5"))),
+                                cost: 5,
+                                predecessor: None
+                              };
+
+        let result_data = vec![CurrentBest {
+                                id: to_node_id(("A", "10:40:00", NodeType::Arrival, Some("g5"))),
+                                cost: 5,
+                                predecessor: None
+                               },
+                               CurrentBest {
+                                id: to_node_id(("A", "09:40:00", NodeType::Departure, Some("g5"))),
+                                cost: 5,
+                                predecessor: None
+                               },
+                               CurrentBest {
+                                id: to_node_id(("A", "09:40:00", NodeType::Transfer, Some("g5"))),
+                                cost: 5,
+                                predecessor: None
+                               },
+                               CurrentBest {
+                                id: to_node_id(("A", "09:40:00", NodeType::Arrival, Some("g5"))),
+                                cost: 5,
+                                predecessor: None
+                               },
+                               CurrentBest {
+                                id: to_node_id(("B", "09:40:00", NodeType::Arrival, Some("g5"))),
+                                cost: 5,
+                                predecessor: None
+                               }];
+
+        let results = &result_data.iter()
+                                 .map(|result| (result.id.clone(), result.clone()))
+                                 .collect::<HashMap<GtfsId, CurrentBest<GtfsId>>>();
+
+        let partition = partition_dijkstra_results(&results);
+
+        let stop_a = &"A".to_string();
+        let stop_b = &"B".to_string();
+        let mut expected_partition = HashMap::new();
+        expected_partition.insert(stop_a, vec![]);
+        expected_partition.insert(stop_b, vec![]);
+        expected_partition.get_mut(&stop_a).map(|mut rs| rs.push(&first_a_arrival));
+        expected_partition.get_mut(&stop_a).map(|mut rs| rs.push(&second_a_arrival));
+        expected_partition.get_mut(&stop_b).map(|mut rs| rs.push(&first_b_arrival));
+
+        assert_eq!(partition, expected_partition);
+    }
+
+    #[test]
+    fn modify_arrival_times_and_paths() {
+        let result_1 = CurrentBest { id: to_node_id(("E", "09:40:00", NodeType::Arrival, Some("g5"))),
+                                    cost: 3000,
+                                    predecessor: Some(to_node_id(("D", "09:30:00", NodeType::Departure, Some("g5"))))
+                                   };
+        let result_2 = CurrentBest { id: to_node_id(("E", "10:00:00", NodeType::Arrival, Some("g6"))),
+                                    cost: 3000,
+                                    predecessor: Some(to_node_id(("D", "09:50:00", NodeType::Departure, Some("g6"))))
+                                   };
+        let result_3 = CurrentBest { id: to_node_id(("E", "10:20:00", NodeType::Arrival, Some("r3"))),
+                                     cost: 7000,
+                                     predecessor: Some(to_node_id(("C", "10:00:00", NodeType::Departure, Some("r3"))))
+                                   };
+
+        let results = vec![&result_1, &result_2, &result_3];
+
+        let cleaned = smooth_results(&results);
+
+        let smooth_results = cleaned.iter()
+                                    .map(|cb| (cb.cost, cb.predecessor.clone().unwrap()))
+                                    .collect::<Vec<(i64, GtfsId)>>();
+        let expected = vec![(3000, result_1.clone().predecessor.unwrap()),
+                            (3000, result_2.clone().predecessor.unwrap()),
+                            (3000 + 20 * 60, result_2.clone().id)];
+
+        assert_eq!(smooth_results, expected);
+    }
+
+    #[test]
+    fn find_transfer_patterns_for_single_station_pair() {
+        let origin_station = "A".to_string();
+        let destination_station = "F".to_string();
+        let graph = graph();
+
+        let partition = partition_station_nodes(&graph);
+        let dijkstra_results = full_dijkstra_from_station(&graph,
+                                                          &partition,
+                                                          &origin_station);
+        let partitioned_dijkstra = partition_dijkstra_results(&dijkstra_results);
+        let smoothed = smooth_results(partitioned_dijkstra.get(&destination_station).unwrap());
+
+        let transfer_patterns = transfer_patterns_for_station_pair(&dijkstra_results,
+                                                                   &smoothed);
+
+        let mut expected = HashSet::new();
+        expected.insert(vec!["A".to_string(), "E".to_string(), "F".to_string()]);
+        expected.insert(vec!["A".to_string(), "F".to_string()]);
+
+        assert_eq!(transfer_patterns, expected);
+    }
+
+    #[test]
+    fn find_all_transfer_patterns() {
+        let graph = graph();
+        let stations = vec!["A", "B", "C", "D", "E", "F"];
+        let mut station_pairs = HashSet::new();
+        for i in &stations {
+            for j in &stations {
+                station_pairs.insert((i.to_string(), j.to_string()));
+            }
+        }
+
+        let all_transfer_patterns = transfer_patterns_for_all_stations(&graph);
+
+        for key in &station_pairs {
+            let partition = partition_station_nodes(&graph);
+            let dijkstra_results = full_dijkstra_from_station(&graph,
+                                                              &partition,
+                                                              &key.0);
+            let partitioned_dijkstra = partition_dijkstra_results(&dijkstra_results);
+            if let Some(destination_node) = partitioned_dijkstra.get(&key.1) {
+                let smoothed = smooth_results(destination_node);
+                    assert_eq!(all_transfer_patterns.get(&key).unwrap(),
+                            &transfer_patterns_for_station_pair(&dijkstra_results, &smoothed));
+            }
+        }
     }
 }

@@ -11,9 +11,9 @@ pub fn to_node_id(data: (&'static str, &'static str, NodeType, Option<&str>)) ->
     let (id, t, stop_type, trip) = data;
 
     GtfsId { stop_id: id.to_string(),
-                time: time_to_seconds_after_midnight(&t.to_string()).unwrap(),
-                node_type: stop_type,
-                trip_id: trip.map(|n| n.to_string())
+             time: time_to_seconds_after_midnight(&t.to_string()).unwrap(),
+             node_type: stop_type,
+             trip_id: trip.map(|n| n.to_string())
             }
 }
 
