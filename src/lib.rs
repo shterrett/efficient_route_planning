@@ -21,3 +21,4 @@ pub mod graph_from_gtfs;
 pub mod gtfs_dijkstra;
 pub mod pareto_sets;
 pub mod set_dijkstra;
+pub mod transfer_patterns;
